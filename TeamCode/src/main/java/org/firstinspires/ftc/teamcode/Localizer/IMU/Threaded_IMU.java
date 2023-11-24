@@ -5,8 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.Localizer.Localizer;
-import org.firstinspires.ftc.teamcode.Util.Math.Pose;
+import org.firstinspires.ftc.teamcode.Generals.Localizer;
+import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
 
 /**Test class for field-centric drive before mounting odometry wheels
  * Used strictly for the HEADING value**/

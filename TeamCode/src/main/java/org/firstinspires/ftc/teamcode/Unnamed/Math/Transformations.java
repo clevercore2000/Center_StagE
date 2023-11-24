@@ -1,8 +1,8 @@
-package org.firstinspires.ftc.teamcode.Util.Math;
+package org.firstinspires.ftc.teamcode.Unnamed.Math;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 
-import org.firstinspires.ftc.teamcode.Util.Math.Pose;
+import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,6 +20,4 @@ public class Transformations {
     public static double inches_2_cm(double in) { return in * 2.54; }
 
     public static double cm_2_inches(double cm) { return cm / 2.54; }
-
-
 }

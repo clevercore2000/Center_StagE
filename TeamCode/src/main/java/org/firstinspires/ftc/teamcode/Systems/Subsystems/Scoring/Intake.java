@@ -6,21 +6,29 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.Systems.Enums;
-import org.firstinspires.ftc.teamcode.Util.MotionHardware.Init;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
 
-class Intake {
+public class Intake implements Enums {
     private final DcMotorEx motor;
     private final Servo left, right;
 
     private LinearOpMode opMode;
 
-    private Enums.IntakeMotorStates motorState = Enums.IntakeMotorStates.STOP;
-    private Enums.IntakeArmStates armState = Enums.IntakeArmStates.UP;
+    private IntakeMotorStates motorState = IntakeMotorStates.STOP;
+    private IntakeArmStates armState = IntakeArmStates.UP;
 
     private static final double servo_UP = 0.6, servo_STACK_UP = 0.92, servo_STACK_DOWN = 0.95, servo_DOWN = 0.99;
-    //TODO: find actual values
     private static final double motorPower = 1;
+    private static final double currentThreshold = 6;
+
+
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
 
 
     /**Initialize hardware*/
@@ -37,6 +45,13 @@ class Intake {
     }
 
 
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
+
 
     protected void setPosition(double position) {
         left.setPosition(position);
@@ -44,9 +59,17 @@ class Intake {
     }
 
     /**Manual set for the intake state*/
-    public void setState(Enums.IntakeMotorStates state) { motorState = state; }
+    public void setState(IntakeMotorStates state) { motorState = state; }
 
-    public void setState(Enums.IntakeArmStates state) { armState = state; }
+    public void setState(IntakeArmStates state) { armState = state; }
+
+
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
 
 
     private void updateMotor() {
@@ -68,16 +91,48 @@ class Intake {
         }
     }
 
-
-    void update(){
+    public void update(){
         updateServo();
         updateMotor();
     }
 
-    public Enums.IntakeArmStates getArmState() { return armState; }
 
-    public Enums.IntakeMotorStates getMotorState() { return motorState; }
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
 
-    public boolean isIntakeConstrained() { return Init.isConstrained(motor); }
+
+    public IntakeArmStates getArmState() { return armState; }
+
+    public IntakeMotorStates getMotorState() { return motorState; }
+
+    public double getIntakeAmperage() { return intakeAmperage; }
+
+
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
+
+
+    public boolean isIntakeConstrained() { return intakeAmperage > currentThreshold; }
+
+
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
+
+
+    private double intakeAmperage;
+
+    synchronized public void read() { intakeAmperage = motor.getCurrent(CurrentUnit.AMPS); }
 
 }

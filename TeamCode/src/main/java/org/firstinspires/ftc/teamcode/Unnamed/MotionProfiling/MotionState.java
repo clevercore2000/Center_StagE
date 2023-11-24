@@ -1,10 +1,10 @@
-package org.firstinspires.ftc.teamcode.Util.Math.MotionProfiling;
+package org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling;
 
 import androidx.annotation.NonNull;
 
 public class MotionState {
     public enum Stage {
-        T1, T2, T3, T4, T5, T6, T7
+        T1, T2, T3, T4, T5, T6, T7, UNDEFINED
     }
 
     public enum val {
@@ -16,13 +16,15 @@ public class MotionState {
     }
 
 
-    private double current_position;
-    private double current_velocity;
-    private double current_acceleration;
-    private double current_jerk;
+    private double current_position = 0;
+    private double current_velocity = 0;
+    private double current_acceleration = 0;
+    private double current_jerk = 0;
 
-    private Stage current_stage;
-    private double current_time_in_stage;
+    private Stage current_stage = Stage.UNDEFINED;
+    private double current_time_in_respective_stage = 0;
+
+    public MotionState() {}
 
     public MotionState(double p, double v, double a, double j, Stage stage, double t) {
         this.current_position = p;
@@ -31,7 +33,7 @@ public class MotionState {
         this.current_jerk = j;
 
         this.current_stage = stage;
-        this.current_time_in_stage = t;
+        this.current_time_in_respective_stage = t;
     }
 
     public MotionState(double p, double v, double a, Stage stage, double t) {
@@ -41,7 +43,7 @@ public class MotionState {
         this.current_jerk = 0;
 
         this.current_stage = stage;
-        this.current_time_in_stage = t;
+        this.current_time_in_respective_stage = t;
     }
 
     public MotionState(double p, double v, Stage stage, double t) {
@@ -51,7 +53,7 @@ public class MotionState {
         this.current_jerk = 0;
 
         this.current_stage = stage;
-        this.current_time_in_stage = t;
+        this.current_time_in_respective_stage = t;
     }
 
     public MotionState(double v, Stage stage, double t) {
@@ -61,7 +63,7 @@ public class MotionState {
         this.current_jerk = 0;
 
         this.current_stage = stage;
-        this.current_time_in_stage = t;
+        this.current_time_in_respective_stage = t;
     }
 
     public MotionState(Stage stage, double t) {
@@ -71,7 +73,7 @@ public class MotionState {
         this.current_jerk = 0;
 
         this.current_stage = stage;
-        this.current_time_in_stage = t;
+        this.current_time_in_respective_stage = t;
     }
 
 
@@ -81,7 +83,7 @@ public class MotionState {
             case VELOCITY: { return current_velocity; }
             case ACCELERATION: { return current_acceleration; }
             case JERK: { return current_jerk; }
-            case TIME: { return current_time_in_stage; }
+            case TIME: { return current_time_in_respective_stage; }
             default: { return 0; }
         }
     }

@@ -4,7 +4,7 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.RR.util.LynxModuleUtil;
-import org.firstinspires.ftc.teamcode.Systems.Enums;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
 
 import java.util.List;
 
@@ -60,7 +60,7 @@ public class HubBulkRead {
         }
     }
 
-    public void clearCache(Enums.Hubs type) {
+    synchronized public void clearCache(Enums.Hubs type) {
         switch (type) {
             case CONTROL_HUB: { CONTROL_HUB.clearBulkCache(); } break;
             case EXPANSION_HUB: { if (!justControlHub) { EXPANSION_HUB.clearBulkCache(); } } break;

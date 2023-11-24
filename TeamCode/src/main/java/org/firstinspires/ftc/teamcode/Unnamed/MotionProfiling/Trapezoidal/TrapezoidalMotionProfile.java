@@ -1,14 +1,12 @@
-package org.firstinspires.ftc.teamcode.Util.Math.MotionProfiling.Trapezoidal;
+package org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling.Trapezoidal;
 
-import static org.firstinspires.ftc.teamcode.Util.Math.MathFormulas.QuadraticSolve;
-import static org.firstinspires.ftc.teamcode.Util.Math.MathFormulas.RectangleArea;
-import static org.firstinspires.ftc.teamcode.Util.Math.MathFormulas.TriangleArea;
+import static org.firstinspires.ftc.teamcode.Unnamed.Math.MathFormulas.QuadraticSolve;
+import static org.firstinspires.ftc.teamcode.Unnamed.Math.MathFormulas.RectangleArea;
+import static org.firstinspires.ftc.teamcode.Unnamed.Math.MathFormulas.TriangleArea;
 
-import android.media.audiofx.DynamicsProcessing;
-
-import org.firstinspires.ftc.teamcode.Util.Math.MotionProfiling.MotionProfile;
-import org.firstinspires.ftc.teamcode.Util.Math.MotionProfiling.MotionState;
-import org.firstinspires.ftc.teamcode.Util.Math.MotionProfiling.ProfileConstrains;
+import org.firstinspires.ftc.teamcode.Generals.MotionProfile;
+import org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling.MotionState;
+import org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling.ProfileConstrains;
 
 public class TrapezoidalMotionProfile implements MotionProfile {
     private enum ProfileShape {
@@ -97,38 +95,44 @@ public class TrapezoidalMotionProfile implements MotionProfile {
 
     @Override
     public MotionState calculate(final double t) {
-        double position = 0, velocity = 0, acceleration = 0, stageTime = 0;
-        MotionState.Stage stage = null;
+        if (isBusy) {
+            double position = 0, velocity = 0, acceleration = 0, stageTime = 0;
+            MotionState.Stage stage = null;
 
-        isBusy = true;
+            isBusy = true;
 
-        if (t <= t1) {
-            stageTime = t;
-            acceleration = MAX_accel;
-            velocity = acceleration * t;
-            position = TriangleArea(velocity, stageTime);
+            if (t <= t1) {
+                stageTime = t;
+                acceleration = MAX_accel;
+                velocity = acceleration * t;
+                position = TriangleArea(velocity, stageTime);
 
-            stage = MotionState.Stage.T1;
-        } else if (t <= t1 + t2) {
-            stageTime = t - t1;
-            acceleration = 0;
-            velocity = max_reached_velocity;
-            position = dist1 + RectangleArea(velocity, stageTime);
+                stage = MotionState.Stage.T1;
+            } else if (t <= t1 + t2) {
+                stageTime = t - t1;
+                acceleration = 0;
+                velocity = max_reached_velocity;
+                position = dist1 + RectangleArea(velocity, stageTime);
 
-            stage = MotionState.Stage.T2;
-        } else if (t <= total_time) {
-            stageTime = total_time - (t1 + t2);
-            acceleration = MAX_decel;
-            velocity = acceleration * t;
-            position = dist1 + dist2 + TriangleArea(velocity, stageTime);
+                stage = MotionState.Stage.T2;
+            } else if (t <= total_time) {
+                stageTime = total_time - (t1 + t2);
+                acceleration = MAX_decel;
+                velocity = acceleration * t;
+                position = dist1 + dist2 + TriangleArea(velocity, stageTime);
 
-            stage = MotionState.Stage.T3;
-        } else { isBusy = false; }
+                stage = MotionState.Stage.T3;
+            } else {
+                isBusy = false;
+            }
 
-        if (reversed)
-            return new MotionState(position, -velocity, -acceleration, stage, stageTime);
+            if (reversed)
+                return new MotionState(position, -velocity, -acceleration, stage, stageTime);
 
-        return new MotionState(position, velocity, acceleration, stage, stageTime);
+            return new MotionState(position, velocity, acceleration, stage, stageTime);
+        }
+
+        return new MotionState();
     }
 
     @Override

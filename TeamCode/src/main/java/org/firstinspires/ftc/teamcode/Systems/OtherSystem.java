@@ -1,12 +1,13 @@
-package org.firstinspires.ftc.teamcode.Systems.Subsystems.Other;
+package org.firstinspires.ftc.teamcode.Systems;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.Systems.Enums;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
+import org.firstinspires.ftc.teamcode.Systems.Subsystems.Other.Drone;
+import org.firstinspires.ftc.teamcode.Systems.Subsystems.Other.PullUp;
 
-public class OtherSystem {
+public class OtherSystem implements Enums{
     private static Drone drone;
-    private static Claw claw;
     private static PullUp pullUp;
 
     private OtherSystem instance = null;
@@ -23,18 +24,14 @@ public class OtherSystem {
         this.opMode = opMode;
 
         drone = new Drone(opMode.hardwareMap);
-        claw = new Claw(opMode.hardwareMap);
         pullUp = new PullUp(opMode.hardwareMap);
     }
 
-    public void setState(Enums.PullUpPositions position) { pullUp.setState(position); }
+    public void setState(PullUpPositions position) { pullUp.setState(position); }
 
-    //public void setState(Enums.ClawPositions position) { claw.setState(position); }
-
-    public void setState(Enums.LauncherPositions position) { drone.setState(position); }
+    public void setState(LauncherPositions position) { drone.setState(position); }
 
     public void update() {
-        claw.update();
         drone.update();
         pullUp.update();
     }

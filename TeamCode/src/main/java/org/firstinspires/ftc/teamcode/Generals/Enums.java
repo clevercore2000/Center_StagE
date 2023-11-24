@@ -1,7 +1,7 @@
-package org.firstinspires.ftc.teamcode.Systems;
+package org.firstinspires.ftc.teamcode.Generals;
 
-public class Enums {
-    public enum Pixels{
+public interface Enums {
+    enum Pixels{
         WHITE,
         YELLOW,
         GREEN,
@@ -10,37 +10,36 @@ public class Enums {
         NONE
     }
 
-    public enum IntakeMotorStates{
+    enum IntakeMotorStates{
         COLLECT,
         SPIT,
         STOP
     }
 
-    public enum IntakeArmStates{
+    enum IntakeArmStates{
         UP,
         STACK_UP,
         STACK_DOWN,
         DOWN
     }
 
-    public enum StoredPixels{
+    enum StoredPixels{
         ZERO,
         ONE,
-        TWO,
-        TOO_MANY
+        TWO
     }
 
-    public enum OuttakeGripperStates{
+    enum OuttakeGripperStates{
         OPEN,
         CLOSED
     }
 
-    public enum OuttakeRotationStates{
+    enum OuttakeRotationStates{
         COLLECT,
         SCORE
     }
 
-    public enum LiftStates{
+    enum LiftStates{
         COLLECT,
         INTERMEDIARY,
         LOW,
@@ -49,55 +48,67 @@ public class Enums {
         UNDEFINED
     }
 
-    public enum Hubs{
+    enum Hubs{
         CONTROL_HUB,
         EXPANSION_HUB,
         ALL
     }
 
-    public enum Sensors{
+    enum Sensors{
         FOR_PIXEL_1,
         FOR_PIXEL_2
     }
 
-    public enum Timers{
-        TIMER_FOR_SPITTING
-    }
-
-    public enum Pipelines{
+    enum Pipelines{
         DETECTING_PIXELS_ON_BACKDROP
     }
 
-    public enum Scoring{
+    enum Scoring{
         HIGH,
         MID,
         LOW
     }
 
-    public enum Position{
+    enum Position{
         INTERMEDIARY,
         COLLECT
     }
 
-    public enum PixelActions{
+    enum PixelActions{
         GRAB,
         SCORE
     }
 
-    public enum LauncherPositions{
+    enum LauncherPositions{
         LOAD,
-        FIRE
+        FIRE,
+        PENDING
     }
 
-    public enum ClawPositions{
-        OPEN,
-        CLOSED
-    }
-
-    public enum PullUpPositions{
+    enum PullUpPositions{
         DOWN,
         UP,
-        HANGING
+        HANGING,
+        PENDING
+    }
+
+    enum OpMode{
+        TELE_OP,
+        AUTONOMUS
+    }
+
+    enum AfterSpitting {
+        GET_BACK,
+        STOP
+    }
+
+    enum Update{
+        NONE,
+        INTAKE,
+        OUTTAKE,
+        SCORING_SYSTEM,
+        SENSORS,
+        ALL
     }
 }
 

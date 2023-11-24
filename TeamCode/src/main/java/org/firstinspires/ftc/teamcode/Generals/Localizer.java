@@ -1,8 +1,8 @@
-package org.firstinspires.ftc.teamcode.Localizer;
+package org.firstinspires.ftc.teamcode.Generals;
 
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.Util.Math.Pose;
+import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
 
 /**Localizer interface for smoother code*/
 public interface Localizer {

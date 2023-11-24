@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.Systems.Subsystems.Scoring;
 
-import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.infinity;
 import static org.firstinspires.ftc.teamcode.Util.MotionHardware.Init.isConstrained;
 
 import com.arcrobotics.ftclib.controller.PIDController;
@@ -14,15 +13,15 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
-import org.firstinspires.ftc.teamcode.Systems.Enums;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
 import org.firstinspires.ftc.teamcode.TestOpModes.TeleOp.Tuning.PIDF_controllerTuner;
-import org.firstinspires.ftc.teamcode.Util.Math.MotionProfiling.MotionProfile;
-import org.firstinspires.ftc.teamcode.Util.Math.MotionProfiling.MotionState;
-import org.firstinspires.ftc.teamcode.Util.Math.MotionProfiling.ProfileConstrains;
-import org.firstinspires.ftc.teamcode.Util.Math.MotionProfiling.Trapezoidal.TrapezoidalMotionProfile;
+import org.firstinspires.ftc.teamcode.Generals.MotionProfile;
+import org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling.MotionState;
+import org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling.ProfileConstrains;
+import org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling.Trapezoidal.TrapezoidalMotionProfile;
 import org.firstinspires.ftc.teamcode.Util.MotionHardware.Init;
 
-class Outtake {
+public class Outtake implements Enums {
     private final DcMotorEx leftMotor;
     private final DcMotorEx rightMotor;
     private final Servo gripper;
@@ -30,34 +29,43 @@ class Outtake {
 
     private LinearOpMode opMode;
 
-    private Enums.OuttakeGripperStates gripperStates = Enums.OuttakeGripperStates.CLOSED;
-    private Enums.OuttakeRotationStates rotationStates = Enums.OuttakeRotationStates.COLLECT;
+    private OuttakeGripperStates gripperStates = OuttakeGripperStates.CLOSED;
+    private OuttakeRotationStates rotationStates = OuttakeRotationStates.COLLECT;
 
     public static final double ticks_in_degree = 36 / 14;
     private final double open = 0.0, closed = 0.2;
-    private final double collect = 0.06, score = 0.40;
+    private final double collect = 0.115, score = 0.8;
     private final int liftCOLLECT = 0, liftINTERMEDIARY = 95, liftLOW = 300, liftMID = 530, liftHIGH = 875;
+
 
     private MotionProfile motionProfile;
     private ElapsedTime profileTimer;
-    private double MAX_VEL = 6000, MAX_ACC = 10, MAX_DECC = 5;
+    private double MAX_VEL = 6000, MAX_ACC = 300, MAX_DECC = -20;
     private double profileThreshold = 100;
 
 
     private PIDController controller;
-
     public static double p = PIDF_controllerTuner.p, d = PIDF_controllerTuner.d;
     public static double f = PIDF_controllerTuner.f;
 
-    private int MIN = 0, MAX = 875, RESET = -2000;
-    private int old_target = 0;
+
+    private int MIN = 0, MAX = liftINTERMEDIARY, RESET = -2000;
     private int target = liftINTERMEDIARY;
+    public static final int safeRotationThreshold = 290;
     private double accuracyThreshold = 20;
+    private LiftStates liftState = LiftStates.INTERMEDIARY;
 
-    private Enums.LiftStates liftState = Enums.LiftStates.INTERMEDIARY;
 
-    private static boolean needsToReset = true;
-    private boolean isAscending = true;
+    private boolean needsToReset = true;
+    public static final double currentThreshold = 8.4;
+
+
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
 
 
     public Outtake(LinearOpMode opMode)
@@ -81,6 +89,13 @@ class Outtake {
     }
 
 
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
+
 
     public void resetEncoders() {
         Init.resetEncoders(leftMotor);
@@ -99,18 +114,74 @@ class Outtake {
         }
     }
 
-    public void setTarget(int target) {
-        this.liftState = Enums.LiftStates.UNDEFINED;
-        old_target = this.target;
 
-        Range.clip(target, MIN, MAX);
-        this.target = target;
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
+
+
+    public double getProfileVelocity() {
+        return (motionProfile != null) ? motionProfile.calculate(profileTimer.milliseconds()).get(MotionState.val.VELOCITY) : 0; }
+
+    public LiftStates getLiftState() { return liftState; }
+
+    public double getLiftAmperage() { return (leftAmperage + rightAmperage) / 2; }
+
+    public int getTarget() { return target; }
+
+    public int getCurrentPositionAverage() { return (leftEncoderPosition + rightEncoderPosition) / 2; }
+
+
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
+
+
+    public boolean isLiftBusy() { return (Math.abs(getCurrentPositionAverage() - target) > accuracyThreshold) ? true : false; }
+
+    public boolean isLiftBusy(double accuracyThreshold) { return (Math.abs(getCurrentPositionAverage() - target) > accuracyThreshold) ? true : false; }
+
+    public boolean isLiftConstrained() { return leftAmperage > currentThreshold  || rightAmperage > currentThreshold; }
+
+
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
+
+
+    public void setState(OuttakeGripperStates state) { gripperStates = state; }
+
+    public void setState(OuttakeRotationStates state) { rotationStates = state; }
+
+    public void setMaxManualTarget(LiftStates target) {
+        switch (target) {
+            case INTERMEDIARY: { MAX = liftINTERMEDIARY; } break;
+            case HIGH: { MAX = liftHIGH; } break;
+        }
+    }
+
+    public void setTarget(int target) {
+        this.liftState = LiftStates.UNDEFINED;
+
+        this.target = Range.clip(target, MIN, MAX);
+        if (target >= safeRotationThreshold) {
+            setState(OuttakeRotationStates.SCORE);
+            setState(OuttakeGripperStates.OPEN);
+        }
 
     }
 
-    public void setTarget(Enums.LiftStates liftState) {
+    public void setTarget(LiftStates liftState) {
         this.liftState = liftState;
-        old_target = target;
 
         switch (liftState) {
             case COLLECT: { target = liftCOLLECT; } break;
@@ -128,31 +199,13 @@ class Outtake {
 
     }
 
-    public double getProfileVelocity() {
-        return (motionProfile != null) ? motionProfile.calculate(profileTimer.milliseconds()).get(MotionState.val.VELOCITY) : 0; }
 
-    public Enums.LiftStates getLiftState() { return liftState; }
-
-    public double getLiftAmperage() { return (leftMotor.getCurrent(CurrentUnit.AMPS) + rightMotor.getCurrent(CurrentUnit.AMPS)) / 2; }
-
-    public int getTarget() { return target; }
-
-    int getCurrentPositionAverage() { return (leftMotor.getCurrentPosition() + rightMotor.getCurrentPosition()) / 2; }
-
-    public boolean isLiftBusy() { return (Math.abs(getCurrentPositionAverage() - target) > accuracyThreshold) ? true : false; }
-
-    public boolean isLiftBusy(double accuracyThreshold) { return (Math.abs(getCurrentPositionAverage() - target) > accuracyThreshold) ? true : false; }
-
-    public boolean isLiftConstrained() { return isConstrained(leftMotor) || isConstrained(rightMotor); }
-
-    private boolean isLiftAscending() { return isAscending; }
-
-
-    public void setState(Enums.OuttakeGripperStates state) { gripperStates = state; }
-
-    public void setState(Enums.OuttakeRotationStates state) { rotationStates = state; }
-
-    public void setLiftAscending(boolean isAscending) { this.isAscending = isAscending; }
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
 
 
     private void updateGripper() {
@@ -172,16 +225,24 @@ class Outtake {
     }
 
     private void updateLift() {
-        pid(leftMotor, leftMotor.getCurrentPosition(), target);
-        pid(rightMotor, rightMotor.getCurrentPosition(), target);
+        pid(leftMotor, leftEncoderPosition, target);
+        pid(rightMotor, rightEncoderPosition, target);
 
     }
 
-    void update() {
+    public void update() {
         updateLift();
         updateGripper();
         updateRotation();
     }
+
+
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
 
 
     private void pid(DcMotorEx motor, int currentPosition, int target) {
@@ -189,7 +250,7 @@ class Outtake {
 
         if (motionProfile != null)
             if (motor.isBusy()) {
-                MotionState currentState = motionProfile.calculate(profileTimer.milliseconds());
+                MotionState currentState = motionProfile.calculate(profileTimer.time());
 
                 double profilePower = profileVelocityToMotorInput(currentState);
                 power = Math.min(power, profilePower);
@@ -197,6 +258,15 @@ class Outtake {
 
         motor.setPower(power);
     }
+
+
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
+
 
     private void initializeMotor(DcMotorEx motor, DcMotor.RunMode runMode) {
         MotorConfigurationType motorConfigurationType = motor.getMotorType().clone();
@@ -209,11 +279,43 @@ class Outtake {
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
+
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
+
+
     private double profileVelocityToMotorInput(MotionState state) {
         double velocity = state.get(MotionState.val.VELOCITY);
         double max_velocity = motionProfile.getConstrains().MAX_VELOCITY;
 
         return velocity / max_velocity;
     }
+
+
+    /*
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+    */
+
+
+    private int leftEncoderPosition, rightEncoderPosition;
+    private double leftAmperage, rightAmperage;
+
+    synchronized public void read() {
+        leftEncoderPosition = leftMotor.getCurrentPosition();
+        rightEncoderPosition = rightMotor.getCurrentPosition();
+        leftAmperage = leftMotor.getCurrent(CurrentUnit.AMPS);
+        rightAmperage = rightMotor.getCurrent(CurrentUnit.AMPS);
+    }
+
+
+    public double getMAX() { return MAX; }
+    public double getMIN() { return MIN; }
 
 }

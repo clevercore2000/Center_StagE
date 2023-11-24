@@ -1,6 +1,16 @@
-package org.firstinspires.ftc.teamcode.Util.Math;
+package org.firstinspires.ftc.teamcode.Unnamed.Math;
+
+import org.checkerframework.checker.units.qual.C;
+import org.firstinspires.ftc.teamcode.Unnamed.Exceptions.NotAPolynomialException;
+import org.firstinspires.ftc.teamcode.Unnamed.Localization.Coefficients;
+import org.firstinspires.ftc.teamcode.Unnamed.Localization.Point;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.annotation.Nullable;
+import javax.xml.transform.dom.DOMLocator;
 
 public class MathFormulas {
     public static double TriangleArea(double base, double h) { return base * h / 2; }
@@ -33,5 +43,15 @@ public class MathFormulas {
     }
 
     public static double sign(double value) { return (value < 0) ? -1 : 1; }
+
+    public static Coefficients findLinearFunction(Point point1, Point point2) throws NotAPolynomialException {
+        Double a = new Double(( point1.y - point2.y ) / ( point1.x - point2.x) );
+        Double b = new Double(point1.y - a * point1.x);
+
+        return new Coefficients(Arrays.asList(a, b));
+    }
+
+
+
 
 }

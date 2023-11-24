@@ -1,8 +1,8 @@
-package org.firstinspires.ftc.teamcode.Swerve;
+package org.firstinspires.ftc.teamcode.Generals;
 
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 
-interface SwerveConstants {
+public interface SwerveConstants {
     /**Friction FeedForward**/
     double K_STATIC = 0.03; //to be tuned
     double K_VELOCITY = 1; //to be tuned

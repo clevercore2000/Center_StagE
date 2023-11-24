@@ -31,6 +31,8 @@ public class AprilTagCamera extends Camera {
 
         this.opMode = opMode;
         this.telemetry = telemetry;
+
+        initCamera();
     }
 
     private void initCamera() {
@@ -48,7 +50,7 @@ public class AprilTagCamera extends Camera {
                 .build();
     }
 
-    public double updateDetection() {
+    public double getDetection() {
         List<AprilTagDetection> detections = new ArrayList<>();
         double smallestDistanceToDetection = infinity;
 

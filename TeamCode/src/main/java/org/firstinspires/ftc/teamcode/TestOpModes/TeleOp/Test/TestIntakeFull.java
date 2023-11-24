@@ -9,11 +9,11 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.Systems.Enums;
-import org.firstinspires.ftc.teamcode.Systems.Subsystems.Scoring.ScoringSystem;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
+import org.firstinspires.ftc.teamcode.Systems.ScoringSystem;
 
-import java.util.concurrent.TimeUnit;
 @Config
+@Deprecated
 @TeleOp (name = "FullIntake", group = "test")
 public class TestIntakeFull extends LinearOpMode {
     public ScoringSystem system;
@@ -64,7 +64,7 @@ public class TestIntakeFull extends LinearOpMode {
 
 
     private void Init() {
-        system = system.getInstance(this);
+        system = system.getInstance(this, Enums.OpMode.TELE_OP);
         system.resetNumberOfCollectedPixelsToZero();
 
         dashboardTelemetry = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -92,7 +92,6 @@ public class TestIntakeFull extends LinearOpMode {
 
         dashboardTelemetry.addLine();
 
-        dashboardTelemetry.addData("Timer for spitting: ", system.getTime(Enums.Timers.TIMER_FOR_SPITTING, TimeUnit.MILLISECONDS));
         startLoopTime = endLoopTime;
 
         dashboardTelemetry.update();

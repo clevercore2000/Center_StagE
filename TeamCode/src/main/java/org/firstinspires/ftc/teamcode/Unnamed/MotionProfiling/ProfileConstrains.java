@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Util.Math.MotionProfiling;
+package org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling;
 
 public class ProfileConstrains {
     public double MAX_VELOCITY;

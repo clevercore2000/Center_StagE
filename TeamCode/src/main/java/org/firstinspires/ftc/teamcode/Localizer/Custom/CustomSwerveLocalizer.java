@@ -5,16 +5,16 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.Localizer.Localizer;
+import org.firstinspires.ftc.teamcode.Generals.Localizer;
 import org.firstinspires.ftc.teamcode.RR.util.Encoder;
-import org.firstinspires.ftc.teamcode.Util.Math.Pose;
+import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
 
 public class CustomSwerveLocalizer implements Localizer {
     public static double TICKS_PER_REV = 8192;
-    public static double WHEEL_RADIUS = 0; //to be tuned (inch)
+    public static double WHEEL_RADIUS = 0; //cm
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
 
-    public double l = 0; //also inches
+    public double l = 0; //also cm
     public double r = 0;
     public double b = 0;
 

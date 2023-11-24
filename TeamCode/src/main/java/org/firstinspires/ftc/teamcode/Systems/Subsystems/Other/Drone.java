@@ -8,67 +8,71 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.RR.util.Encoder;
-import org.firstinspires.ftc.teamcode.Systems.Enums;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
 
-class Drone {
+public class Drone implements Enums{
     private CRServo tensioner;
-    private Servo launcher;
+    private CRServo launcher;
     private Encoder encoder;
 
     private final double p = 0.01;
     private PIDController tensionController;
 
-    private final double load = 0, fire = 0;
-    private double targetTension = 0; // encoder ticks
+    private final double loadPower = 0.5, firePower = -0.5;
+    private double targetTension = -4741; // encoder ticks
     private HardwareMap hardwareMap;
 
-    private Enums.LauncherPositions position;
+    private LauncherPositions position;
 
     public Drone(HardwareMap hardwareMap) {
         this.hardwareMap = hardwareMap;
 
         tensioner = hardwareMap.get(CRServo.class, "tensioner");
-        launcher = hardwareMap.get(Servo.class, "launcher");
+        launcher = hardwareMap.get(CRServo.class, "launcher");
         tensionController = new PIDController(p, 0, 0);
 
         //TODO: select the right swerve module port for this one
-        encoder = new Encoder(hardwareMap.get(DcMotorEx.class, "FL"));
+
+        encoder = new Encoder(hardwareMap.get(DcMotorEx.class, "intake"));
 
         init();
     }
 
 
     /**initialization*/
-    private void init() { setState(Enums.LauncherPositions.LOAD); }
+    private void init() { setState(LauncherPositions.LOAD); }
 
 
     /**setter methods*/
     public void setTargetTension(double targetTension) { this.targetTension = targetTension; }
 
-    public void setState(Enums.LauncherPositions position) {
-        this.position =  position;
+    public void setState(LauncherPositions position) { this.position =  position; }
 
-        switch (position) {
-            case FIRE: { launcher.setPosition(fire); } break;
-            case LOAD: { launcher.setPosition(load); } break;
-            default: {}
-        }
-    }
+    public void setPower(double power) { tensioner.setPower(power); }
 
 
     /**getter methods*/
     public double getTargetTension() { return targetTension; }
 
+    public double getEncoderPosition() { return encoder.getCurrentPosition(); }
+
 
     /**update*/
     public void update() {
-        double position = encoder.getCurrentPosition();
-        double power = tensionController.calculate(position, targetTension);
+        //double position = encoder.getCurrentPosition();
+        //double power = tensionController.calculate(position, targetTension);
 
-        if (power > 0) { tensioner.setDirection(DcMotorSimple.Direction.FORWARD); }
-        else { tensioner.setDirection(DcMotorSimple.Direction.REVERSE); }
+        //if (power > 0) { tensioner.setDirection(DcMotorSimple.Direction.FORWARD); }
+        //else { tensioner.setDirection(DcMotorSimple.Direction.REVERSE); }
 
-        tensioner.setPower(power);
+        switch (this.position) {
+            case FIRE: { launcher.setPower(firePower); } break;
+            case LOAD: { launcher.setPower(loadPower); } break;
+            case PENDING: { launcher.setPower(0); } break;
+            default: {}
+        }
+
+        //tensioner.setPower(power);
     }
     //TODO: find a way to use encoder ticks to use servos
 }

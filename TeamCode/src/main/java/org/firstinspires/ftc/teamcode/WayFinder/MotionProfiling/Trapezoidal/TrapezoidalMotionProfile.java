@@ -1,12 +1,12 @@
-package org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling.Trapezoidal;
+package org.firstinspires.ftc.teamcode.WayFinder.MotionProfiling.Trapezoidal;
 
-import static org.firstinspires.ftc.teamcode.Unnamed.Math.MathFormulas.QuadraticSolve;
-import static org.firstinspires.ftc.teamcode.Unnamed.Math.MathFormulas.RectangleArea;
-import static org.firstinspires.ftc.teamcode.Unnamed.Math.MathFormulas.TriangleArea;
+import static org.firstinspires.ftc.teamcode.WayFinder.Math.MathFormulas.QuadraticSolve;
+import static org.firstinspires.ftc.teamcode.WayFinder.Math.MathFormulas.RectangleArea;
+import static org.firstinspires.ftc.teamcode.WayFinder.Math.MathFormulas.TriangleArea;
 
 import org.firstinspires.ftc.teamcode.Generals.MotionProfile;
-import org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling.MotionState;
-import org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling.ProfileConstrains;
+import org.firstinspires.ftc.teamcode.WayFinder.MotionProfiling.MotionState;
+import org.firstinspires.ftc.teamcode.WayFinder.MotionProfiling.ProfileConstrains;
 
 public class TrapezoidalMotionProfile implements MotionProfile {
     private enum ProfileShape {

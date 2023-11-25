@@ -1,18 +1,14 @@
 package org.firstinspires.ftc.teamcode.Swerve;
 
-import static org.firstinspires.ftc.teamcode.Swerve.SwerveModule.GEAR_RATIO;
-import static org.firstinspires.ftc.teamcode.Swerve.SwerveModule.WHEEL_RADIUS;
-import static org.firstinspires.ftc.teamcode.Unnamed.Math.Transformations.Pose2d_2_Pose;
-import static org.firstinspires.ftc.teamcode.Unnamed.Math.Transformations.Pose_2_Pose2d;
-import static org.firstinspires.ftc.teamcode.Unnamed.Math.Transformations.doubleMatrix_2_doubleList;
+import static org.firstinspires.ftc.teamcode.Swerve.SwerveModule.SwerveModule.GEAR_RATIO;
+import static org.firstinspires.ftc.teamcode.Swerve.SwerveModule.SwerveModule.WHEEL_RADIUS;
+import static org.firstinspires.ftc.teamcode.WayFinder.Math.Transformations.Pose2d_2_Pose;
+import static org.firstinspires.ftc.teamcode.WayFinder.Math.Transformations.Pose_2_Pose2d;
 
 import com.acmerobotics.roadrunner.drive.DriveSignal;
 import com.acmerobotics.roadrunner.followers.HolonomicPIDVAFollower;
 import com.acmerobotics.roadrunner.followers.TrajectoryFollower;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.kinematics.Kinematics;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.acmerobotics.roadrunner.trajectory.constraints.AngularVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.MinVelocityConstraint;
@@ -20,15 +16,14 @@ import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationCon
 import com.acmerobotics.roadrunner.trajectory.constraints.SwerveVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAccelerationConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
-import com.acmerobotics.roadrunner.util.Angle;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
 import org.firstinspires.ftc.teamcode.Generals.SwerveConstants;
 import org.firstinspires.ftc.teamcode.Localizer.Custom.CustomSwerveLocalizer;
 import org.firstinspires.ftc.teamcode.Generals.Localizer;
@@ -37,53 +32,56 @@ import org.firstinspires.ftc.teamcode.Localizer.RR.SwerveLocalizer;
 import org.firstinspires.ftc.teamcode.RR.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.RR.trajectorysequence.TrajectorySequenceBuilder;
 import org.firstinspires.ftc.teamcode.RR.trajectorysequence.TrajectorySequenceRunner;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
+import org.firstinspires.ftc.teamcode.Swerve.SwerveModule.SwerveModule;
+import org.firstinspires.ftc.teamcode.Swerve.SwerveModule.SwerveState;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
+import org.firstinspires.ftc.teamcode.WayFinder.Pathing.PathFollowers.MotionSignal;
 
 
 import java.util.Arrays;
 import java.util.List;
 
-public class CleverSwerve extends SwerveKinematics implements SwerveConstants {
+public class CleverSwerve extends SwerveKinematics implements SwerveConstants, Enums.Swerve, Enums {
+    private static CleverSwerve instance;
 
-    public enum Localizers {
-        CUSTOM,
-        IMU,
-        ROADRUNNER
-    }
+    private SwerveModule frontLeftModule, frontRightModule, backLeftModule, backRightModule;
+    private List<SwerveModule> modules;
+    private SwerveState currentState;
 
-    public static SwerveModule frontLeftModule, frontRightModule, backLeftModule, backRightModule;
-    public static SwerveModule[] modules;
+    private Localizer localizer;
+    private Localizers localizerType;
+    private MotionPackage motionPackage = MotionPackage.CUSTOM;
 
-    public static CleverSwerve instance = null;
+    private VoltageSensor batteryVoltageSensor;
 
-    public static Localizer localizer;
-    public boolean FIELD_CENTRIC = false;
-    public Localizers type = null;
-
-    /*Wheels speeds / wheels angles*/
-    double[][] ws_wa;
-
-    private LinearOpMode opMode = null;
+    private LinearOpMode opMode;
+    private OpMode opModeType;
     private Telemetry telemetry = null;
 
+    private MotionSignal signal;
 
-    public static CleverSwerve getInstance(LinearOpMode opMode, Localizers type) {
-        if (instance == null)
-            instance = new CleverSwerve(opMode, type);
+
+    /*
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    */
+
+
+    public static CleverSwerve getInstance(LinearOpMode opMode, Localizers localizerType, OpMode opModeType  ) {
+        instance = new CleverSwerve(opMode, localizerType, opModeType);
         return instance;
     }
 
-    public CleverSwerve(LinearOpMode opMode, Localizers type) {
+    public CleverSwerve(LinearOpMode opMode, Localizers localizerType, OpMode opModeType) {
         this.opMode = opMode;
+        batteryVoltageSensor = opMode.hardwareMap.voltageSensor.iterator().next();
 
         frontLeftModule = new SwerveModule(opMode.hardwareMap, "FL", "FL_servo");
         frontRightModule = new SwerveModule(opMode.hardwareMap, "FR", "FR_servo");
         backLeftModule = new SwerveModule(opMode.hardwareMap, "BL", "BL_servo");
         backRightModule = new SwerveModule(opMode.hardwareMap, "BR", "BR_servo");
-
-        modules = new SwerveModule[]{frontLeftModule, frontRightModule, backRightModule, backLeftModule};
-        roadrunnerInit(opMode.hardwareMap);
-
+        initializeModuleList();
 
         //TODO: reverse directions if necessary
         setSpeedDirection(Arrays.asList(
@@ -100,9 +98,12 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants {
                 Servo.Direction.FORWARD
         ));
 
+        if (motionPackage == MotionPackage.ROADRUNNER) { initializeRoadrunner(); }
 
-        this.type = type;
-        switch (this.type) {
+        this.localizerType = localizerType;
+        this.opModeType = opModeType;
+
+        switch (this.localizerType) {
             case IMU: { localizer = new Threaded_IMU(opMode); } break;
             case ROADRUNNER: { localizer = new SwerveLocalizer(opMode.hardwareMap); } break;
             case CUSTOM: { localizer = new CustomSwerveLocalizer(opMode.hardwareMap); } break;
@@ -111,94 +112,164 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants {
     }
 
 
+    /*
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    */
 
-    /**initialization*/
+
+    private void initializeModuleList() {
+        modules.add(frontLeftModule);
+        modules.add(frontRightModule);
+        modules.add(backRightModule);
+        modules.add(backLeftModule);
+    }
+
+    private void initializeRoadrunner() {
+        follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID,
+                new Pose2d(0.5, 0.5, Math.toRadians(5.0)));
+        trajectorySequenceRunner = new TrajectorySequenceRunner(follower, HEADING_PID);
+    }
+
+
+    /*
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    */
+
+
     public void setAngleDirection(List<Servo.Direction> directions) {
         for (int i = 0; i < directions.size(); i++)
-            modules[i].setDirection(directions.get(i));
+            modules.get(i).setDirection(directions.get(i));
     }
 
     public void setSpeedDirection(List<DcMotorSimple.Direction> directions) {
         for (int i = 0; i < directions.size(); i++)
-            modules[i].setDirection(directions.get(i));
+            modules.get(i).setDirection(directions.get(i));
     }
 
 
+    /*
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    */
 
 
-    public void joystickDrive(double joystick_x, double joystick_y, double joystick_head) {
+    public void drive(double x, double y, double head) {
         update();
 
-        Pose vel;
+        Pose actualVector;
         if (FIELD_CENTRIC)
-            vel = new Pose(joystick_x, joystick_y, joystick_head).rotateWithRotationalMatrix(-localizer.getAngle(AngleUnit.RADIANS));
-        else vel = new Pose(joystick_x, joystick_y, joystick_head);
+            actualVector = new Pose(x, y, head).rotateWithRotationalMatrix(-localizer.getAngle(AngleUnit.RADIANS));
+        else actualVector = new Pose(x, y, head);
 
-        if (Math.abs(joystick_x) < 0.001 && Math.abs(joystick_y) < 0.001 && Math.abs(joystick_head) < 0.001)
+        if (Math.abs(actualVector.x) < 0.001 && Math.abs(actualVector.y) < 0.001 && Math.abs(actualVector.heading) < 0.001)
             super.setLocked(true);
         else super.setLocked(false);
 
-        ws_wa = super.robot2wheel(vel);
+        currentState = super.robot2moduleVelocity(actualVector);
 
-        for (int i = 0; i < 4; i++) { modules[i].run(ws_wa[0][i], ws_wa[1][i]); }
+        int i = 0;
+        for (SwerveState eachState : currentState.getList()) { modules.get(i).run(eachState.speed, eachState.angle); i++; }
 
     }
 
-    public void lockToPosition(Pose lockPos)
+    public void lockToPosition(Pose lockPosition)
     {
-        Pose2d currentPos = Pose_2_Pose2d(getPoseEstimate());
-        Pose2d difference = Pose_2_Pose2d(lockPos).minus(currentPos);
+        Pose currentPosition = getPoseEstimate();
+        Pose difference = lockPosition.subtract(currentPosition);
 
-        Vector2d xy = difference.vec().rotated(-currentPos.getHeading());
-
-        double heading = Angle.normDelta(lockPos.heading) - Angle.normDelta(currentPos.getHeading());
-        joystickDrive(xy.getX() * xyP, xy.getY() * xyP, heading * headingP);
+        Pose rotated_difference = difference.rotateWithRotationalMatrix(-currentPosition.heading);
+        drive(rotated_difference.x * xyP, rotated_difference.y * xyP, difference.heading * headingP);
     }
 
 
+    /*
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    */
 
-    /**setter methods*/
+
     @Override
-    protected void setLockWheelsPosition(LockedWheelPositions desiredPosition) { super.setLockWheelsPosition(desiredPosition); }
+    protected void setLockStatus(LockedWheelPositions desiredPosition) { super.setLockStatus(desiredPosition); }
 
-    public void setFieldCentric(boolean f) { this.FIELD_CENTRIC = f; }
+    public void setMotionPackage(MotionPackage motionPackage) { this.motionPackage = motionPackage; }
 
     public void setPoseEstimate(Pose poseEstimate) { localizer.setPositionEstimate(poseEstimate); }
 
     public void setTelemetry(Telemetry telemetry) { this.telemetry = telemetry; }
 
 
+    /*
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    */
 
-    /**getter methods*/
+    public Localizer getLocalizer() { return localizer; }
+
     public Pose getPoseEstimate() { return localizer.getRobotPosition(); }
 
     public Pose getVelocityEstimate() { return localizer.getRobotVelocity(); }
 
     public boolean isConstrained() {
-        for (int i = 0; i < modules.length; i++)
-            if (modules[i].isConstrained()) return true;
+        for (int i = 0; i < modules.size(); i++)
+            if (modules.get(i).isConstrained()) return true;
 
         return false;
     }
 
+    public void read() { localizer.read(); }
 
 
-    /**math*/
+    /*
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    */
+
+
     public static double rpmToVelocity(double rpm) {
         return rpm * GEAR_RATIO * 2 * Math.PI * WHEEL_RADIUS / 60.0;
     }
 
 
+    /*
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    */
 
 
-    /**update methods*/
     public void update() {
         localizer.update();
 
-        DriveSignal signal = trajectorySequenceRunner.update(
-                Pose_2_Pose2d(getPoseEstimate()),
-                Pose_2_Pose2d(getVelocityEstimate()));
-        if (signal != null && type != Localizers.IMU) setDriveSignal(signal);
+        if (opModeType == OpMode.AUTONOMUS) { updateAutonomus(); }
+    }
+
+    public void updateAutonomus() {
+        if (motionPackage == MotionPackage.ROADRUNNER) {
+
+            DriveSignal signal = trajectorySequenceRunner.update(
+                    Pose_2_Pose2d(getPoseEstimate()),
+                    Pose_2_Pose2d(getVelocityEstimate()));
+            if (signal != null && localizerType != Localizers.IMU) setDriveSignal(signal);
+
+        } else if (motionPackage == MotionPackage.CUSTOM) {
+
+            if (signal != null) {
+                if (USING_FEEDFORWARD) {
+                    signal.velocity = new Pose(signal.velocity.multiplyBy(K_VELOCITY).getPoint().sum(K_STATIC),
+                            signal.velocity.multiplyBy(K_VELOCITY).heading);
+                }
+
+                drive(signal.velocity.x, signal.velocity.y, signal.velocity.heading);
+            }
+        }
     }
 
     public void updateDebuggingTelemetry() {
@@ -208,10 +279,10 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants {
             telemetry.addData("BR: ", backRightModule.getTargetAngle());
             telemetry.addData("FR: ", frontRightModule.getTargetAngle());
 
-            telemetry.addData("raw BL: ", ws_wa[1][0]);
-            telemetry.addData("raw FL: ", ws_wa[1][1]);
-            telemetry.addData("raw FR: ", ws_wa[1][2]);
-            telemetry.addData("raw BR: ", ws_wa[1][3]);
+            telemetry.addData("raw BL: ", currentState.get(0, state.ANGLE));
+            telemetry.addData("raw FL: ", currentState.get(1, state.ANGLE));
+            telemetry.addData("raw FR: ", currentState.get(2, state.ANGLE));
+            telemetry.addData("raw BR: ", currentState.get(3, state.ANGLE));
 
             telemetry.addData("LOCKED: ", super.isLocked());
             telemetry.addData("is flipped: ", backLeftModule.wheelFlipped);
@@ -221,40 +292,40 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants {
     }
 
 
-    /**roadrunner
-     * ⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘
-     *⊱ ────── {.⋅ ♫ ⋅.} ───── ⊰
-     *⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘
-     *⊱ ────── {.⋅ ♫ ⋅.} ───── ⊰
-     * ⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘
-     */
+    /*
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    */
 
+    /**CUSTOM*/
+    public void setMotionSignal(MotionSignal signal) { this.signal = signal; }
+
+
+    /*
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    */
+
+
+    /**ROADRUNNER*/
     private TrajectorySequenceRunner trajectorySequenceRunner;
     private static TrajectoryFollower follower;
-
-    private static VoltageSensor batteryVoltageSensor;
 
     private static final TrajectoryVelocityConstraint VELOCITY_CONSTRAINT = getVelocityConstraint(MAX_ANG_VEL, MAX_VEL);
     private static final TrajectoryAccelerationConstraint ACCELERATION_CONSTRAINT = getAccelerationConstraint(MAX_ACCEL);
 
 
-
-    /**initialization*/
-    private void roadrunnerInit(HardwareMap hardwareMap) {
-        follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID,
-                new Pose2d(0.5, 0.5, Math.toRadians(5.0)));
-        trajectorySequenceRunner = new TrajectorySequenceRunner(follower, HEADING_PID);
-
-        batteryVoltageSensor = hardwareMap.voltageSensor.iterator().next();
-    }
+    /**
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     */
 
 
-
-    /**getter methods*/
     public static TrajectoryVelocityConstraint getVelocityConstraint(double maxAngularVelocity, double maxVelocity) {
         return new MinVelocityConstraint(Arrays.asList(
                 new AngularVelocityConstraint(maxAngularVelocity),
-                new SwerveVelocityConstraint(maxVelocity, TRACK_WIDTH)
+                new SwerveVelocityConstraint(maxVelocity, BASE_WIDTH)
         ));
     }
 
@@ -262,27 +333,29 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants {
         return new ProfileAccelerationConstraint(maxAcceleration);
     }
 
+    public Pose getLastError() { return Pose2d_2_Pose(trajectorySequenceRunner.getLastPoseError()); }
 
 
-    /**setter methods*/
+    /**
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     */
+
+
     private void setDriveSignal(DriveSignal driveSignal) {
-        double[][] ws_wa = super.robot2wheel(Pose2d_2_Pose(driveSignal.getVel()));
-        double[][] was_waa = super.robot2wheel(Pose2d_2_Pose(driveSignal.getAccel()));
+        SwerveState velocities = super.robot2moduleVelocity(Pose2d_2_Pose(driveSignal.getVel()));
+        SwerveState accelerations = super.robot2moduleAcceleration(Pose2d_2_Pose(driveSignal.getAccel()));
 
-        List<Double> velocities = doubleMatrix_2_doubleList(ws_wa);
-        List<Double> accelerations = doubleMatrix_2_doubleList(was_waa);
+        SwerveState powers = SwerveConstants.calculateFeedforward(velocities, accelerations);
 
-        List<Double> powers = Kinematics.calculateMotorFeedforward(velocities, accelerations,
-                K_VELOCITY, K_ACCELERATION, K_STATIC);
-
-        List<Double> angles = super.computeWheelAngles(ws_wa, was_waa);
-
-        for (int i = 0; i < modules.length; i++) { modules[i].run(powers.get(i), angles.get(i)); }
+        for (int i = 0; i < modules.size(); i++) { modules.get(i).run(powers.get(i, state.SPEED), powers.get(i, state.ANGLE)); }
     }
 
 
+    /**
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     */
 
-    /**building trajectories*/
+
     public TrajectoryBuilder trajectoryBuilder(Pose startPose) {
         return new TrajectoryBuilder(Pose_2_Pose2d(startPose), VELOCITY_CONSTRAINT, ACCELERATION_CONSTRAINT);
     }
@@ -304,30 +377,31 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants {
     }
 
 
+    /**
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     */
 
-    /**following trajectories*/
-    public void followTrajectoryAsync(Trajectory trajectory) {
-        trajectorySequenceRunner.followTrajectorySequenceAsync(
-                trajectorySequenceBuilder(Pose2d_2_Pose(trajectory.start()))
-                        .addTrajectory(trajectory)
-                        .build()
-        );
-    }
 
     public void followTrajectorySequenceAsync(TrajectorySequence trajectorySequence) {
         trajectorySequenceRunner.followTrajectorySequenceAsync(trajectorySequence);
     }
 
 
+    /**
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     */
 
-    /**getter methods*/
-    public Pose getLastError() { return Pose2d_2_Pose(trajectorySequenceRunner.getLastPoseError()); }
+
 
     public boolean isBusy() { return trajectorySequenceRunner.isBusy(); }
 
-
-
     public void waitForIdle() { while (!Thread.currentThread().isInterrupted() && isBusy()) { update(); } }
+
+
+    /**
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     */
+
 
     public void turnAsync(double angle) {
         trajectorySequenceRunner.followTrajectorySequenceAsync(

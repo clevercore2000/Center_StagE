@@ -14,15 +14,17 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Generals.Enums;
+import org.firstinspires.ftc.teamcode.Systems.OtherSystem;
 import org.firstinspires.ftc.teamcode.Systems.ScoringSystem;
 import org.firstinspires.ftc.teamcode.Util.SensorEx.HubBulkRead;
 
 @TeleOp(name = "🤯", group = "DRĂCOS")
 
-public class Center_StagETeleOp extends LinearOpMode implements Enums{
+public class Center_StagETeleOp extends LinearOpMode
+        implements Enums.Other, Enums.Swerve, Enums.Scoring, Enums {
     //public CleverSwerve swerve;
     public ScoringSystem system;
-    //public OtherSystem other;
+    public OtherSystem other;
     public HubBulkRead core;
 
     private Thread readingThread, swerveThread, otherSystemThread;
@@ -53,12 +55,10 @@ public class Center_StagETeleOp extends LinearOpMode implements Enums{
         while(opModeIsActive()) {
 
             /**Use other subsystems only when endgame starts*/
-            /*if (isEndgame()) {
-                if (g2.wasJustPressed(GamepadKeys.Button.LEFT_STICK_BUTTON)) { other.setState(PullUpPositions.UP); }
+            if (g2.wasJustPressed(GamepadKeys.Button.LEFT_STICK_BUTTON)) { other.setState(PullUpPositions.UP); }
 
-                if (g2.wasJustPressed(GamepadKeys.Button.RIGHT_STICK_BUTTON)) { other.setState(PullUpPositions.HANGING); }
+            if (g2.wasJustPressed(GamepadKeys.Button.RIGHT_STICK_BUTTON)) { other.setState(PullUpPositions.HANGING); }
 
-            }*/
 
 
             /**Access to intake actions is necessary*/
@@ -86,11 +86,11 @@ public class Center_StagETeleOp extends LinearOpMode implements Enums{
 
                 if (g2.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
 
-                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) { system.score(Scoring.HIGH); }
+                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) { system.score(Score.HIGH); }
 
-                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) { system.score(Scoring.MID); }
+                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) { system.score(Score.MID); }
 
-                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) { system.score(Scoring.LOW); }
+                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) { system.score(Score.LOW); }
 
                     if (g2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) { system.getTo(Position.INTERMEDIARY); }
 
@@ -117,8 +117,6 @@ public class Center_StagETeleOp extends LinearOpMode implements Enums{
 
             }
 
-            //if (g2.wasJustPressed(GamepadKeys.Button.Y)) { system.removePixelsUntilRemain(0); }
-
             system.manualControlLift(g2.getLeftY());
             updateAll();
         }
@@ -130,16 +128,16 @@ public class Center_StagETeleOp extends LinearOpMode implements Enums{
     private void updateAll() {
         system.update();
         updateTelemetry();
-        //other.update();
+        other.update();
         g2.readButtons();
         g1.readButtons();
     }
 
     private void Init() {
         //swerve = swerve.getInstance(this, CleverSwerve.Localizers.IMU);
-        //other= other.getInstance(this);
         core = core.getInstance(hardwareMap);
         system = system.getInstance(this, OpMode.TELE_OP);
+        other= other.getInstance(this, OtherTimer.NOT_USING_ENDGAME_TIMER);
         initializeThreads();
         startThreads();
 
@@ -171,10 +169,13 @@ public class Center_StagETeleOp extends LinearOpMode implements Enums{
                 while (!isStopRequested()) {
                     synchronized (readingLock) {
                         system.read();
+                        other.read();
                         core.clearCache(Hubs.ALL);
                 }
             }
         });
+
+
 
     }
 

@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.Generals.Enums;
 import org.firstinspires.ftc.teamcode.Systems.Subsystems.Other.PullUp;
 
 @TeleOp(group = "test")
-public class TestPullUp extends LinearOpMode {
+public class TestPullUp extends LinearOpMode implements Enums.Other {
     private PullUp pullup;
     private GamepadEx g2;
     private Telemetry dashboardTelemetry;
@@ -28,11 +28,11 @@ public class TestPullUp extends LinearOpMode {
         while (opModeIsActive()) {
             pullup.setPower(-g2.getRightY());
 
-            if (g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) { pullup.setState(Enums.PullUpPositions.UP); }
+            if (g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) { pullup.setState(PullUpPositions.UP); }
 
-            if (g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) { pullup.setState(Enums.PullUpPositions.HANGING); }
+            if (g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) { pullup.setState(PullUpPositions.HANGING); }
 
-            if (g2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) { pullup.setState(Enums.PullUpPositions.DOWN); }
+            if (g2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) { pullup.setState(PullUpPositions.DOWN); }
 
             pullup.update();
             g2.readButtons();

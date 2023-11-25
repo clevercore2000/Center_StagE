@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Swerve;
+package org.firstinspires.ftc.teamcode.Swerve.SwerveModule;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeRadians;
 
@@ -115,7 +115,7 @@ public class SwerveModule {
         return  value;
     }
 
-    protected void run(double s, double a) {
+    public void run(double s, double a) {
         setAngle(a);
         setSpeed(s);
     }

@@ -1,52 +1,7 @@
 package org.firstinspires.ftc.teamcode.Generals;
 
 public interface Enums {
-    enum Pixels{
-        WHITE,
-        YELLOW,
-        GREEN,
-        PURPLE,
-        UNIDENTIFIED,
-        NONE
-    }
 
-    enum IntakeMotorStates{
-        COLLECT,
-        SPIT,
-        STOP
-    }
-
-    enum IntakeArmStates{
-        UP,
-        STACK_UP,
-        STACK_DOWN,
-        DOWN
-    }
-
-    enum StoredPixels{
-        ZERO,
-        ONE,
-        TWO
-    }
-
-    enum OuttakeGripperStates{
-        OPEN,
-        CLOSED
-    }
-
-    enum OuttakeRotationStates{
-        COLLECT,
-        SCORE
-    }
-
-    enum LiftStates{
-        COLLECT,
-        INTERMEDIARY,
-        LOW,
-        MID,
-        HIGH,
-        UNDEFINED
-    }
 
     enum Hubs{
         CONTROL_HUB,
@@ -54,42 +9,8 @@ public interface Enums {
         ALL
     }
 
-    enum Sensors{
-        FOR_PIXEL_1,
-        FOR_PIXEL_2
-    }
-
     enum Pipelines{
         DETECTING_PIXELS_ON_BACKDROP
-    }
-
-    enum Scoring{
-        HIGH,
-        MID,
-        LOW
-    }
-
-    enum Position{
-        INTERMEDIARY,
-        COLLECT
-    }
-
-    enum PixelActions{
-        GRAB,
-        SCORE
-    }
-
-    enum LauncherPositions{
-        LOAD,
-        FIRE,
-        PENDING
-    }
-
-    enum PullUpPositions{
-        DOWN,
-        UP,
-        HANGING,
-        PENDING
     }
 
     enum OpMode{
@@ -97,18 +18,141 @@ public interface Enums {
         AUTONOMUS
     }
 
-    enum AfterSpitting {
-        GET_BACK,
-        STOP
+
+
+    interface Scoring {
+        enum Pixels{
+            WHITE,
+            YELLOW,
+            GREEN,
+            PURPLE,
+            UNIDENTIFIED,
+            NONE
+        }
+
+        enum StoredPixels{
+            ZERO,
+            ONE,
+            TWO
+        }
+
+        enum PixelActions{
+            GRAB,
+            SCORE
+        }
+
+        enum IntakeMotorStates{
+            COLLECT,
+            SPIT,
+            STOP
+        }
+
+        enum IntakeArmStates{
+            UP,
+            STACK_UP,
+            STACK_DOWN,
+            DOWN
+        }
+
+        enum AfterSpitting {
+            GET_BACK,
+            STOP
+        }
+
+        enum OuttakeGripperStates{
+            OPEN,
+            CLOSED
+        }
+
+        enum OuttakeRotationStates{
+            COLLECT,
+            SCORE
+        }
+
+        enum LiftStates{
+            COLLECT,
+            INTERMEDIARY,
+            LOW,
+            MID,
+            HIGH,
+            UNDEFINED
+        }
+
+        enum Score{
+            HIGH,
+            MID,
+            LOW
+        }
+
+        enum Position{
+            INTERMEDIARY,
+            COLLECT
+        }
+
+        enum Update{
+            NONE,
+            INTAKE,
+            OUTTAKE,
+            SCORING_SYSTEM,
+            SENSORS,
+            ALL
+        }
+
+        enum Sensors{
+            FOR_PIXEL_1,
+            FOR_PIXEL_2
+        }
     }
 
-    enum Update{
-        NONE,
-        INTAKE,
-        OUTTAKE,
-        SCORING_SYSTEM,
-        SENSORS,
-        ALL
+
+
+    interface Other {
+        enum OtherTimer{
+            USING_ENDGAME_TIMER,
+            NOT_USING_ENDGAME_TIMER
+        }
+
+        enum LauncherPositions{
+            LOAD,
+            FIRE,
+            PENDING
+        }
+
+        enum PullUpPositions{
+            DOWN,
+            UP,
+            HANGING,
+            PENDING
+        }
+    }
+
+    interface Swerve {
+        enum MotionPackage {
+            ROADRUNNER,
+            CUSTOM
+        }
+
+        enum Localizers {
+            CUSTOM,
+            IMU,
+            ROADRUNNER
+        }
+
+        enum state{
+            SPEED,
+            ANGLE
+        }
+
+        enum LockedWheelPositions{
+            DIAMOND,
+            X_SHAPE,
+            DEFAULT
+        }
+
+        enum Component {
+            X,
+            Y
+        }
     }
 }
 

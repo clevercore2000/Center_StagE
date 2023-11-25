@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling;
+package org.firstinspires.ftc.teamcode.WayFinder.MotionProfiling;
 
 public class ProfileConstrains {
     public double MAX_VELOCITY;

@@ -8,9 +8,10 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
 import org.firstinspires.ftc.teamcode.RR.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 
 @Config
 @Autonomous (name = "Swerve", group = "test")
@@ -20,7 +21,7 @@ public class TestSwerveAuto extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        swerve = new CleverSwerve(this, CleverSwerve.Localizers.CUSTOM);
+        swerve = swerve.getInstance(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.AUTONOMUS);
         dashboardTelemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         Pose startPose = new Pose(0, 0, Math.toRadians(45));

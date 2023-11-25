@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.Generals.Enums;
 
-public class Intake implements Enums {
+public class Intake implements Enums.Scoring {
     private final DcMotorEx motor;
     private final Servo left, right;
 

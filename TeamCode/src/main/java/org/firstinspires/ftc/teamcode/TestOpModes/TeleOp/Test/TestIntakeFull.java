@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.Systems.ScoringSystem;
 @Config
 @Deprecated
 @TeleOp (name = "FullIntake", group = "test")
-public class TestIntakeFull extends LinearOpMode {
+public class TestIntakeFull extends LinearOpMode implements Enums.Scoring {
     public ScoringSystem system;
 
     Telemetry dashboardTelemetry;
@@ -40,16 +40,16 @@ public class TestIntakeFull extends LinearOpMode {
             if (system.isManualIntakeEnabled()) {
                 if (g2.isDown(GamepadKeys.Button.RIGHT_BUMPER)) {
 
-                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) { system.startIntake(Enums.IntakeArmStates.DOWN); }
+                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) { system.startIntake(IntakeArmStates.DOWN); }
 
-                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) { system.startIntake(Enums.IntakeArmStates.STACK_UP); }
+                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) { system.startIntake(IntakeArmStates.STACK_UP); }
 
-                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) { system.startIntake(Enums.IntakeArmStates.STACK_DOWN); }
+                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) { system.startIntake(IntakeArmStates.STACK_DOWN); }
 
                     if (g2.wasJustPressed(GamepadKeys.Button.Y)) { system.stopIntake(); }
 
                     /**mManual SPIT*/
-                    if (g2.isDown(GamepadKeys.Button.LEFT_BUMPER)) { system.setState(Enums.IntakeMotorStates.SPIT); }
+                    if (g2.isDown(GamepadKeys.Button.LEFT_BUMPER)) { system.setState(IntakeMotorStates.SPIT); }
                 }
 
             }

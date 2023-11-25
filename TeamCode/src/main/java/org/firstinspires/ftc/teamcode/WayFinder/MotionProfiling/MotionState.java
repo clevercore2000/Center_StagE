@@ -1,6 +1,4 @@
-package org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling;
-
-import androidx.annotation.NonNull;
+package org.firstinspires.ftc.teamcode.WayFinder.MotionProfiling;
 
 public class MotionState {
     public enum Stage {

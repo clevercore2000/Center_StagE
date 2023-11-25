@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.RR.util.Encoder;
 import org.firstinspires.ftc.teamcode.Generals.Enums;
 
-public class Drone implements Enums{
+public class Drone implements Enums.Other {
     private CRServo tensioner;
     private CRServo launcher;
     private Encoder encoder;
@@ -54,12 +54,11 @@ public class Drone implements Enums{
     /**getter methods*/
     public double getTargetTension() { return targetTension; }
 
-    public double getEncoderPosition() { return encoder.getCurrentPosition(); }
+    public double getEncoderPosition() { return encoderPosition; }
 
 
     /**update*/
     public void update() {
-        //double position = encoder.getCurrentPosition();
         //double power = tensionController.calculate(position, targetTension);
 
         //if (power > 0) { tensioner.setDirection(DcMotorSimple.Direction.FORWARD); }
@@ -75,4 +74,10 @@ public class Drone implements Enums{
         //tensioner.setPower(power);
     }
     //TODO: find a way to use encoder ticks to use servos
+
+
+    private double encoderPosition;
+    public void read() {
+        encoderPosition = encoder.getCurrentPosition();
+    }
 }

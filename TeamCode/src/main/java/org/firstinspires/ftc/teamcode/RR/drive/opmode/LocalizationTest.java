@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.RR.drive.opmode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.Generals.Enums;
 import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
 
 /**
@@ -14,14 +15,16 @@ import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
  */
 @TeleOp(name = "RR_Localization",group = "RR")
 public class LocalizationTest extends LinearOpMode {
+    CleverSwerve swerve;
+
     @Override
     public void runOpMode() throws InterruptedException {
-        CleverSwerve swerve = new CleverSwerve(this, CleverSwerve.Localizers.CUSTOM);
+        swerve = swerve.getInstance(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.AUTONOMUS);
 
         waitForStart();
 
         while (!isStopRequested()) {
-            swerve.joystickDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+            swerve.drive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 
             telemetry.addLine("             POSE"                                       );
             telemetry.addData("x:        ", swerve.getPoseEstimate().x                      );

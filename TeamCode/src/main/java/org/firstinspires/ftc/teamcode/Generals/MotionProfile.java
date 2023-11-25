@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.Generals;
 
-import org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling.MotionState;
-import org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling.ProfileConstrains;
+import org.firstinspires.ftc.teamcode.WayFinder.MotionProfiling.MotionState;
+import org.firstinspires.ftc.teamcode.WayFinder.MotionProfiling.ProfileConstrains;
 
 public interface MotionProfile {
     boolean isBusy();

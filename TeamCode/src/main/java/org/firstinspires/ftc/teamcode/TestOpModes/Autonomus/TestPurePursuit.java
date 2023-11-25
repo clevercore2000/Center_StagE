@@ -6,13 +6,14 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
 import org.firstinspires.ftc.teamcode.Generals.Localizer;
 import org.firstinspires.ftc.teamcode.Localizer.Custom.CustomSwerveLocalizer;
 import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
-import org.firstinspires.ftc.teamcode.Unnamed.Exceptions.NotAPolynomialException;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Point;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
-import org.firstinspires.ftc.teamcode.Unnamed.Pathing.PurePursuit;
+import org.firstinspires.ftc.teamcode.WayFinder.Exceptions.NotAPolynomialException;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Point;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
+import org.firstinspires.ftc.teamcode.WayFinder.Pathing.PathBuilders.PurePursuit;
 
 @Autonomous(group = "test", name = "PurePursuit")
 public class TestPurePursuit extends LinearOpMode {
@@ -27,7 +28,7 @@ public class TestPurePursuit extends LinearOpMode {
         localizer.setPositionEstimate(new Pose(0,0,0));
 
 
-        swerve = new CleverSwerve(this, CleverSwerve.Localizers.CUSTOM);
+        swerve = swerve.getInstance(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.TELE_OP);
         dashboardTelemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         follower = new PurePursuit(localizer)

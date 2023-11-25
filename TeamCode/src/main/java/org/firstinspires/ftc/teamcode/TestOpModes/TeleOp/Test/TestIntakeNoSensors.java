@@ -10,7 +10,8 @@ import org.firstinspires.ftc.teamcode.Systems.ScoringSystem;
 
 @Deprecated
 @TeleOp(group = "test", name = "IntakeNoSensors")
-public class TestIntakeNoSensors extends LinearOpMode implements Enums {
+public class TestIntakeNoSensors extends LinearOpMode
+        implements Enums, Enums.Scoring {
     ScoringSystem intake;
     @Override
     public void runOpMode() throws InterruptedException {

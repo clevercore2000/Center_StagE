@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.Generals.Enums;
 import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
 
 /*
@@ -13,10 +14,11 @@ import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
 @Autonomous(name = "RR_Turn", group = "RR")
 public class TurnTest extends LinearOpMode {
     public static double ANGLE = 90; // deg
+    CleverSwerve swerve;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        CleverSwerve swerve = new CleverSwerve(this, CleverSwerve.Localizers.IMU);
+        swerve = swerve.getInstance(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.AUTONOMUS);
 
         waitForStart();
 

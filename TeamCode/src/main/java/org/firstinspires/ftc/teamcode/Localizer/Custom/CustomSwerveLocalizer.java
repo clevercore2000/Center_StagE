@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Generals.Localizer;
 import org.firstinspires.ftc.teamcode.RR.util.Encoder;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 
 public class CustomSwerveLocalizer implements Localizer {
     public static double TICKS_PER_REV = 8192;
@@ -27,9 +27,9 @@ public class CustomSwerveLocalizer implements Localizer {
     private ElapsedTime loopTime;
 
     private Encoder leftEncoder, rightEncoder, backEncoder;
-    private Dead3WheelLocalizer localizer = null;
+    private Dead3WheelLocalizer localizer;
 
-    public static double encoderTicksToInch(double ticks) {
+    public static double encoderTicksToCM(double ticks) {
         return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV;
     }
 
@@ -43,21 +43,21 @@ public class CustomSwerveLocalizer implements Localizer {
 
         localizer = new Dead3WheelLocalizer(l, r, b);
 
-        leftEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "leftEncoder"));
-        rightEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "rightEncoder"));
-        backEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "backEncoder"));
+        leftEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "FL"));
+        rightEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "FR"));
+        backEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "BR"));
 
         //TODO: reverse any encoders using Encoder.setDirection(Encoder.Direction.REVERSE)
+        //TODO: select the right swerve modules for this
     }
 
     @Override
     public void update() {
-        updateEncoders();
 
         Pose deltaPose = localizer.getDeltaPoseEstimate(delta_L, delta_R, delta_B, currentPose.heading);
-        currentPose = new Pose(previousPose.x + deltaPose.x, previousPose.y + deltaPose.y, deltaPose.heading);
+        currentPose = new Pose(currentPose.getPoint().sum(deltaPose.getPoint()), deltaPose.heading);
 
-        velocityPose = deltaPose.dividedBy(loopTime.seconds());
+        velocityPose = deltaPose.divideBy(loopTime.seconds());
     }
 
     public Pose getRobotPosition() { return currentPose; }
@@ -79,7 +79,8 @@ public class CustomSwerveLocalizer implements Localizer {
         }
     }
 
-    public void updateEncoders() {
+    /**call this every loop*/
+    public void read() {
         loopTime.reset();
         previousL = currentL;
         previousR = currentR;
@@ -89,9 +90,9 @@ public class CustomSwerveLocalizer implements Localizer {
         currentR = rightEncoder.getCurrentPosition();
         currentB = backEncoder.getCurrentPosition();
 
-        delta_L = encoderTicksToInch(currentL - previousL);
-        delta_R = encoderTicksToInch(currentR - previousR);
-        delta_B = encoderTicksToInch(currentB - previousB);
+        delta_L = encoderTicksToCM(currentL - previousL);
+        delta_R = encoderTicksToCM(currentR - previousR);
+        delta_B = encoderTicksToCM(currentB - previousB);
 
         previousPose = currentPose;
     }

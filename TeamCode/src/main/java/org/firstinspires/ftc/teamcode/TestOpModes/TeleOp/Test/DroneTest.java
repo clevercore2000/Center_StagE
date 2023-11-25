@@ -9,13 +9,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Generals.Enums;
-import org.firstinspires.ftc.teamcode.Localizer.Custom.CustomSwerveLocalizer;
 import org.firstinspires.ftc.teamcode.Systems.Subsystems.Other.Drone;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Point;
-import org.firstinspires.ftc.teamcode.Unnamed.Pathing.PurePursuit;
 
 @TeleOp(group = "test")
-public class DroneTest extends LinearOpMode implements Enums {
+public class DroneTest extends LinearOpMode implements Enums.Other {
     private Drone drone;
     private GamepadEx g2;
     private Telemetry dashboardTelemetry;

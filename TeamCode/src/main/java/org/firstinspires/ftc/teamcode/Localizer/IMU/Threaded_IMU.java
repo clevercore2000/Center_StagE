@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Generals.Localizer;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 
 /**Test class for field-centric drive before mounting odometry wheels
  * Used strictly for the HEADING value**/
@@ -77,6 +77,7 @@ public class Threaded_IMU implements Localizer {
     public Pose getRobotVelocity() { return new Pose(); }
 
 
+    public void read() {}
 
     public void update() {}
 

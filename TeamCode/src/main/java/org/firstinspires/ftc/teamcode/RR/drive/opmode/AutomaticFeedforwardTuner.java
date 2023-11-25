@@ -8,7 +8,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.internal.system.Misc;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
 import org.firstinspires.ftc.teamcode.RR.util.LoggingUtil;
 import org.firstinspires.ftc.teamcode.RR.util.RegressionUtil;
@@ -16,8 +17,10 @@ import org.firstinspires.ftc.teamcode.RR.util.RegressionUtil;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.firstinspires.ftc.teamcode.Generals.Enums.Swerve.Localizers.CUSTOM;
+import static org.firstinspires.ftc.teamcode.Swerve.CleverSwerve.getInstance;
 import static org.firstinspires.ftc.teamcode.Swerve.CleverSwerve.rpmToVelocity;
-import static org.firstinspires.ftc.teamcode.Swerve.SwerveModule.MAX_RPM;
+import static org.firstinspires.ftc.teamcode.Swerve.SwerveModule.SwerveModule.MAX_RPM;
 
 /*
  * Op mode for computing kV, kStatic, and kA from various drive routines. For the curious, here's an
@@ -31,7 +34,7 @@ import static org.firstinspires.ftc.teamcode.Swerve.SwerveModule.MAX_RPM;
  */
 @Config
 @Autonomous(name = "RR_Feedforward", group = "RR")
-public class AutomaticFeedforwardTuner extends LinearOpMode {
+public class AutomaticFeedforwardTuner extends LinearOpMode implements Enums.Swerve {
     public static double MAX_POWER = 0.7;
     public static double DISTANCE = 100; // in
 
@@ -40,7 +43,7 @@ public class AutomaticFeedforwardTuner extends LinearOpMode {
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        CleverSwerve swerve = new CleverSwerve(this, CleverSwerve.Localizers.IMU);
+        CleverSwerve swerve = getInstance(this, CUSTOM, Enums.OpMode.AUTONOMUS);
 
         NanoClock clock = NanoClock.system();
 
@@ -114,7 +117,7 @@ public class AutomaticFeedforwardTuner extends LinearOpMode {
             positionSamples.add(swerve.getPoseEstimate().x);
             powerSamples.add(power);
 
-            swerve.joystickDrive(power, 0.0, 0.0);
+            swerve.drive(power, 0.0, 0.0);
         }
 
         RegressionUtil.RampResult rampResult = RegressionUtil.fitRampData(
@@ -180,7 +183,7 @@ public class AutomaticFeedforwardTuner extends LinearOpMode {
 
             startTime = clock.seconds();
             while (!isStopRequested()) {
-                swerve.joystickDrive(MAX_POWER, 0.0, 0.0);
+                swerve.drive(MAX_POWER, 0.0, 0.0);
                 double elapsedTime = clock.seconds() - startTime;
                 if (elapsedTime > maxPowerTime) {
                     break;

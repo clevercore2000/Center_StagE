@@ -1,24 +1,20 @@
-package org.firstinspires.ftc.teamcode.Unnamed.Pathing;
+package org.firstinspires.ftc.teamcode.WayFinder.Pathing.PathBuilders;
 
-import static com.acmerobotics.roadrunner.util.MathUtil.solveQuadratic;
-import static org.firstinspires.ftc.teamcode.Unnamed.Math.MathFormulas.QuadraticSolve;
-import static org.firstinspires.ftc.teamcode.Unnamed.Math.MathFormulas.findLinearFunction;
-import static org.firstinspires.ftc.teamcode.Unnamed.Math.MathFormulas.toPower;
+import static org.firstinspires.ftc.teamcode.WayFinder.Math.MathFormulas.QuadraticSolve;
+import static org.firstinspires.ftc.teamcode.WayFinder.Math.MathFormulas.findLinearFunction;
+import static org.firstinspires.ftc.teamcode.WayFinder.Math.MathFormulas.toPower;
 
-import com.acmerobotics.roadrunner.control.PIDFController;
-import com.arcrobotics.ftclib.controller.PIDController;
-
-import org.checkerframework.dataflow.qual.Pure;
 import org.firstinspires.ftc.teamcode.Generals.Localizer;
-import org.firstinspires.ftc.teamcode.Unnamed.Exceptions.NotAPolynomialException;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Coefficients;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Point;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
+import org.firstinspires.ftc.teamcode.Generals.Paths;
+import org.firstinspires.ftc.teamcode.WayFinder.Exceptions.NotAPolynomialException;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Coefficients;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Point;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PurePursuit {
+public class PurePursuit implements Paths {
     private double radiusToSearch = 20; //cm
     //TODO: tune this
 
@@ -32,8 +28,6 @@ public class PurePursuit {
     private List<Point> pathPoints = new ArrayList<Point>();
     private Point lastFollowedPoint = new Point();
     private Point pointToFollow;
-    private Coefficients currentLineCoefficients;
-    private Coefficients nextLineCoefficients;
 
     private boolean isOnSameLine = true;
     private boolean isStarted = false, isPaused = false, isBusy= false, isDone = false;
@@ -170,9 +164,6 @@ public class PurePursuit {
     }
 
     private void updatePosition() {
-        robotLocalizer.update();
-
-        robotPosition = robotLocalizer.getRobotPosition();
         circleCenterX = robotPosition.x;
         circleCenterY = robotPosition.y;
     }
@@ -221,6 +212,13 @@ public class PurePursuit {
 
     public Point getLastFollowedPoint() { return lastFollowedPoint; }
 
+    public boolean isBusy() { return isBusy; }
 
+    //call this every loop
+    public void read() {
+        robotLocalizer.read();
+        robotLocalizer.update();
+        robotPosition = robotLocalizer.getRobotPosition();
+    }
 }
 

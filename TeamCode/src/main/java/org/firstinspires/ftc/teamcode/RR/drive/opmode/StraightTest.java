@@ -3,12 +3,13 @@ package org.firstinspires.ftc.teamcode.RR.drive.opmode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
+import org.firstinspires.ftc.teamcode.RR.trajectorysequence.TrajectorySequence;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
 
 /*
@@ -18,14 +19,15 @@ import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
 @Autonomous(name = "RR_Straight", group = "RR")
 public class StraightTest extends LinearOpMode {
     public static double DISTANCE = 60; // in
+    CleverSwerve swerve;
 
     @Override
     public void runOpMode() throws InterruptedException {
         Telemetry telemetry = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        CleverSwerve drive = new CleverSwerve(this, CleverSwerve.Localizers.CUSTOM);
+        swerve = swerve.getInstance(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.AUTONOMUS);
 
-        Trajectory trajectory = drive.trajectoryBuilder(new Pose())
+        TrajectorySequence trajectory = swerve.trajectorySequenceBuilder(new Pose())
                 .forward(DISTANCE)
                 .build();
 
@@ -33,14 +35,14 @@ public class StraightTest extends LinearOpMode {
 
         if (isStopRequested()) return;
 
-        drive.followTrajectoryAsync(trajectory);
+        swerve.followTrajectorySequenceAsync(trajectory);
 
-        Pose poseEstimate = drive.getPoseEstimate();
+        Pose poseEstimate = swerve.getPoseEstimate();
         telemetry.addData("finalX", poseEstimate.x);
         telemetry.addData("finalY", poseEstimate.y);
         telemetry.addData("finalHeading", poseEstimate.heading);
         telemetry.update();
 
-        while (!isStopRequested() && opModeIsActive() && drive.isBusy()) ;
+        while (!isStopRequested() && opModeIsActive() && swerve.isBusy()) ;
     }
 }

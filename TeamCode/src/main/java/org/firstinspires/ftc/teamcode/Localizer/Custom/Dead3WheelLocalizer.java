@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.Localizer.Custom;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Point;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Point;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 
 /**Standard odometry class for 3 wheel localization
  * Uses an arc-based approximation of change in position
@@ -14,13 +14,13 @@ public class Dead3WheelLocalizer {
     private double r = 0;
     private double b = 0;
 
-    private double start_theta;
+    private double start_heading;
 
     public Dead3WheelLocalizer(double left_constant, double right_constant, double back_constant) {
         l = left_constant;
         r = right_constant;
         b = back_constant;
-        start_theta = 0;
+        start_heading = 0;
     }
 
     /**This constructor assumes that +Y direction is the front of the robot and +X the right side*/
@@ -30,10 +30,10 @@ public class Dead3WheelLocalizer {
         l = Math.abs(robot_center.x - left_point.x);
         r = Math.abs(robot_center.x - right_Point.x);
         b = Math.abs(robot_center.y - back_point.y);
-        start_theta = 0;
+        start_heading = 0;
     }
 
-    public void setStartOrientation(double start_theta) { this.start_theta = start_theta; }
+    public void setStartOrientation(double start_theta) { this.start_heading = start_theta; }
 
     /**Returns the change in angle of the robot
      * @param delta_L: distance traveled by the left wheel
@@ -42,8 +42,8 @@ public class Dead3WheelLocalizer {
      */
     private double calculateHeading(double delta_L, double delta_R, AngleUnit angleUnit)
     {
-        double robot_theta = (delta_L - delta_R) / (l + r);
-        return (angleUnit == AngleUnit.DEGREES) ? Math.toDegrees(robot_theta) : robot_theta;
+        double robot_heading = (delta_L - delta_R) / (l + r);
+        return (angleUnit == AngleUnit.DEGREES) ? Math.toDegrees(robot_heading) : robot_heading;
     }
 
     /**Axis +Y in ROBOT-FRAME is the straight-line between the two positions*/
@@ -83,9 +83,9 @@ public class Dead3WheelLocalizer {
         double robot_x = calculateX(delta_B, robot_theta);
         double robot_y = calculateY(delta_R, robot_theta);
 
-        double new_absolute_theta = start_theta + robot_theta;
+        double new_absolute_theta = start_heading + robot_theta;
         double delta_absolute_theta = new_absolute_theta - absolute_theta;
-        double average_theta = start_theta + delta_absolute_theta / 2;
+        double average_theta = start_heading + delta_absolute_theta / 2;
 
         Pose delta_global_pose = new Pose(robot_x, robot_y, new_absolute_theta).rotateWithRotationalMatrix(-average_theta);
 

@@ -6,6 +6,7 @@ import com.acmerobotics.roadrunner.util.Angle;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.Generals.Enums;
 import org.firstinspires.ftc.teamcode.RR.drive.StandardTrackingWheelLocalizer;
 import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
 
@@ -64,10 +65,11 @@ import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
 @TeleOp(name = "RR_OdometryLateral", group = "RR")
 public class TrackingWheelLateralDistanceTuner extends LinearOpMode {
     public static int NUM_TURNS = 10;
+    CleverSwerve swerve;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        CleverSwerve swerve = new CleverSwerve(this, CleverSwerve.Localizers.CUSTOM);
+        swerve = swerve.getInstance(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.AUTONOMUS);
 
         telemetry.addLine("Prior to beginning the routine, please read the directions "
                 + "located in the comments of the opmode file.");
@@ -90,7 +92,7 @@ public class TrackingWheelLateralDistanceTuner extends LinearOpMode {
 
         while (!isStopRequested() && !tuningFinished) {
             Pose2d vel = new Pose2d(0, 0, -gamepad1.right_stick_x);
-            swerve.joystickDrive(vel.getX(), vel.getY(), vel.getHeading());
+            swerve.drive(vel.getX(), vel.getY(), vel.getHeading());
 
             swerve.update();
 

@@ -1,132 +1,118 @@
 package org.firstinspires.ftc.teamcode.Swerve;
 
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Point;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
+import org.firstinspires.ftc.teamcode.Swerve.SwerveModule.SwerveState;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 
-import java.util.Arrays;
-import java.util.List;
-
-abstract class SwerveKinematics {
-    public enum LockedWheelPositions{
-        DIAMOND,
-        X_SHAPE,
-        DEFAULT
-    }
-
-    private enum Component {
-        X,
-        Y
-    }
+public abstract class SwerveKinematics implements Enums.Swerve {
 
     /**Robot-specific parameters*/
-    public static double TRACK_WIDTH = 13, WHEEL_BASE = 13; //to be tuned
-    private final double R = Math.hypot(TRACK_WIDTH, WHEEL_BASE) / 2;
+    public static double BASE_WIDTH = 13, BASE_LENGTH = 13; //to be tuned
+    private final double drivetrain_radius = Math.hypot(BASE_WIDTH, BASE_LENGTH) / 2;
+    private final double ANGULAR_VELOCITY_X = BASE_LENGTH / drivetrain_radius;
+    private final double ANGULAR_VELOCITY_Y = BASE_WIDTH / drivetrain_radius;
 
     protected boolean locked = false;
     private LockedWheelPositions lockedStatus = LockedWheelPositions.DIAMOND;
 
-    private double[] lastWheelAngles;
+    private SwerveState lastState = new SwerveState()
+            .add(0, 0)
+            .add(0, 0)
+            .add(0, 0)
+            .add(0, 0);
 
-    /**Performing inverse kinematics to determine each module's state from a drivetrain state
-     * #1st order
-     */
-    public double[][] robot2wheel(Pose p) {
+
+    /**Performing inverse kinematics to determine each module's state from a drivetrain state*/
+    public SwerveState robot2moduleVelocity(Pose p) {
         double x = p.x, y = p.y, heading = p.heading;
-        double[][] ws_wa;
+        SwerveState state;
 
-        double a = x - heading * (WHEEL_BASE / R),
-                b = x + heading * (WHEEL_BASE / R),
-                c = y - heading * (TRACK_WIDTH / R),
-                d = y + heading * (TRACK_WIDTH / R);
+        double  left = x - heading * ANGULAR_VELOCITY_X,
+                right = x + heading * ANGULAR_VELOCITY_X,
+                front = y + heading * ANGULAR_VELOCITY_Y,
+                back = y - heading * ANGULAR_VELOCITY_Y;
 
-        if (locked) { ws_wa = getLockedWheelsPosition(); }
+        if (locked) { state = getLockedWheelsPosition(); }
         else
         {
-            ws_wa = new double[][]{
-                    {Math.hypot(b, c), Math.hypot(b, d), Math.hypot(a, d), Math.hypot(a, c)},
-                    {Math.atan2(b, c), Math.atan2(b, d), Math.atan2(a, d), Math.atan2(a, c)}
-            };
+            //here you set desired order of wheel states
+            state = new SwerveState()
+                    .add(Math.hypot(front, left), Math.atan2(front, left))
+                    .add(Math.hypot(front, right), Math.atan2(front, right))
+                    .add(Math.hypot(back, right), Math.atan2(back, right))
+                    .add(Math.hypot(back, left), Math.atan2(back, left));
         }
 
 
-        for (int i = 0; i < 4; i++) { lastWheelAngles[i] = ws_wa[1][i]; }
+        lastState = state;
+        return normalizeSpeeds(lastState);
+    }
 
-        return normalizeSpeeds(ws_wa);
+    public SwerveState robot2moduleAcceleration(Pose p) {
+        return robot2moduleVelocity(p);
     }
 
     /**Performing forward kinematics to determine drivetrain's state from module states*/
-    public Pose wheel2robot(double[][] ws_wa) {
-        double[][] x_y = new double[][]{
-                {ws_wa[0][0] * Math.cos(ws_wa[1][0]), ws_wa[0][1] * Math.cos(ws_wa[1][1]), ws_wa[0][2] * Math.cos(ws_wa[1][2]), ws_wa[0][3] * Math.cos(ws_wa[1][3])},
-                {ws_wa[0][0] * Math.sin(ws_wa[1][0]), ws_wa[0][1] * Math.sin(ws_wa[1][1]), ws_wa[0][2] * Math.sin(ws_wa[1][2]), ws_wa[0][3] * Math.sin(ws_wa[1][3])}
-        };
+    public Pose module2robot(SwerveState state) {
+        double x = 0, y = 0, heading;
 
-        Point vectorPeak = new Point(x_y[0][0] + x_y[0][1] + x_y[0][2] + x_y[0][3],
-                x_y[1][0] + x_y[1][1] + x_y[1][2] + x_y[1][3]);
+        for (int i = 0; i < 4 ; i++) {
+            x += (state.get(i, Enums.Swerve.state.SPEED) * Math.cos(state.get(i, Enums.Swerve.state.ANGLE)));
+            y += state.get(i, Enums.Swerve.state.SPEED) * Math.sin(state.get(i, Enums.Swerve.state.ANGLE));
+        }
+        heading = Math.atan2(y, x);
 
-        return new Pose(vectorPeak, Math.atan2(vectorPeak.y, vectorPeak.x));
+        return new Pose(x, y, heading);
     }
 
-    private double[][] normalizeSpeeds(double[][] ws_wa) {
-        double max = Math.max(ws_wa[0][0],ws_wa[0][1]);
-        max = Math.max(ws_wa[0][2], max);
-        max = Math.max(ws_wa[0][3], max);
+
+    private SwerveState normalizeSpeeds(SwerveState state) {
+        double max = 0;
+        for (SwerveState eachState : state.getList()) { max = Math.max(eachState.speed, max); }
 
         if (max > 1)
-            for (int i = 0; i < 4; i ++) ws_wa[0][i] /= max;
+        for (SwerveState eachState : state.getList()) { eachState.speed /= max; }
 
-        return ws_wa;
+        return state;
     }
 
 
-    private double[][] getLockedWheelsPosition() {
+    private SwerveState getLockedWheelsPosition() {
 
         switch (lockedStatus) {
             case DIAMOND: {
-                return new double[][]{
-                        {0, 0, 0, 0},
-                        {-Math.PI / 4, Math.PI / 4, -Math.PI / 4, Math.PI / 4}
-                };
+                SwerveState state = new SwerveState();
+                for (int i = 0; i < 4; i++)
+                    state.add(0, ((i % 2 == 0) ? -1 : 1) * Math.PI / 4);
+
+                return state;
             }
 
             case X_SHAPE: {
-                return new  double[][]{
-                        {0, 0, 0, 0},
-                        {Math.PI / 4, -Math.PI / 4, Math.PI / 4, -Math.PI / 4}
-                };
+                SwerveState state = new SwerveState();
+                for (int i = 0; i < 4; i++)
+                    state.add(0, ((i % 2 == 0) ? 1 : -1) * Math.PI / 4);
+
+                return state;
             }
 
             case DEFAULT: {
-                return  new double[][]{
-                        {0, 0, 0, 0},
-                        {lastWheelAngles[0], lastWheelAngles[1], lastWheelAngles[2], lastWheelAngles[3]}
-                };
+                SwerveState state = new SwerveState();
+                for (int i = 0; i < 4; i++)
+                    state.add(0, lastState.get(i, Enums.Swerve.state.ANGLE));
+
+                return state;
             }
 
             default: {
-                return  new double[][]{
-                    {0, 0, 0, 0},
-                    {0, 0, 0, 0}
-                };
+                SwerveState state = new SwerveState();
+                for (int i = 0; i < 4; i++)
+                    state.add(0, 0);
+
+                return state;
             }
         }
 
-    }
-
-    protected List<Double> computeWheelAngles(double[][] velocity, double[][] acceleration) {
-        return Arrays.asList(
-                Math.atan2(getVectorComponent(velocity[0][0], acceleration[1][0], Component.Y),
-                                getVectorComponent(velocity[0][0], acceleration[1][0], Component.X)),
-
-                Math.atan2(getVectorComponent(velocity[0][1], acceleration[1][1], Component.Y),
-                        getVectorComponent(velocity[0][1], acceleration[1][1], Component.X)),
-
-                Math.atan2(getVectorComponent(velocity[0][2], acceleration[1][2], Component.Y),
-                        getVectorComponent(velocity[0][2], acceleration[1][2], Component.X)),
-
-                Math.atan2(getVectorComponent(velocity[0][3], acceleration[1][3], Component.Y),
-                        getVectorComponent(velocity[0][3], acceleration[1][3], Component.X))
-        );
     }
 
     private double getVectorComponent(double magnitude, double angle, Component type) {
@@ -137,7 +123,7 @@ abstract class SwerveKinematics {
         }
     }
 
-    protected void setLockWheelsPosition(LockedWheelPositions desiredPosition) { lockedStatus = desiredPosition; }
+    protected void setLockStatus(LockedWheelPositions lockedStatus) { this.lockedStatus = lockedStatus; }
 
     protected void setLocked(boolean locked) { this.locked = locked; }
 

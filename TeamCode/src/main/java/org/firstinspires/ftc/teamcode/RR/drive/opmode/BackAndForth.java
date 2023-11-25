@@ -1,14 +1,15 @@
 package org.firstinspires.ftc.teamcode.RR.drive.opmode;
 
-import static org.firstinspires.ftc.teamcode.Unnamed.Math.Transformations.Pose2d_2_Pose;
+import static org.firstinspires.ftc.teamcode.WayFinder.Math.Transformations.Pose2d_2_Pose;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.Generals.Enums;
+import org.firstinspires.ftc.teamcode.RR.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 
 /*
  * Op mode for preliminary tuning of the follower PID coefficients (located in the drive base
@@ -31,24 +32,24 @@ import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
 public class BackAndForth extends LinearOpMode {
 
     public static double DISTANCE = 50;
-
+    CleverSwerve swerve;
     @Override
     public void runOpMode() throws InterruptedException {
-        CleverSwerve swerve = new CleverSwerve(this, CleverSwerve.Localizers.CUSTOM);
+        swerve = swerve.getInstance(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.AUTONOMUS);
 
-        Trajectory trajectoryForward = swerve.trajectoryBuilder(new Pose())
+        TrajectorySequence trajectoryForward = swerve.trajectorySequenceBuilder(new Pose())
                 .forward(DISTANCE)
                 .build();
 
-        Trajectory trajectoryBackward = swerve.trajectoryBuilder(Pose2d_2_Pose(trajectoryForward.end()))
+        TrajectorySequence trajectoryBackward = swerve.trajectorySequenceBuilder(Pose2d_2_Pose(trajectoryForward.end()))
                 .back(DISTANCE)
                 .build();
 
         waitForStart();
 
         while (opModeIsActive() && !isStopRequested()) {
-            swerve.followTrajectoryAsync(trajectoryForward);
-            swerve.followTrajectoryAsync(trajectoryBackward);
+            swerve.followTrajectorySequenceAsync(trajectoryForward);
+            swerve.followTrajectorySequenceAsync(trajectoryBackward);
         }
     }
 }

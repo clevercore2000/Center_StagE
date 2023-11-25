@@ -1,16 +1,12 @@
-package org.firstinspires.ftc.teamcode.Unnamed.Math;
+package org.firstinspires.ftc.teamcode.WayFinder.Math;
 
-import org.checkerframework.checker.units.qual.C;
-import org.firstinspires.ftc.teamcode.Unnamed.Exceptions.NotAPolynomialException;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Coefficients;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Point;
+import org.firstinspires.ftc.teamcode.WayFinder.Exceptions.NotAPolynomialException;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Coefficients;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Point;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import javax.annotation.Nullable;
-import javax.xml.transform.dom.DOMLocator;
 
 public class MathFormulas {
     public static double TriangleArea(double base, double h) { return base * h / 2; }

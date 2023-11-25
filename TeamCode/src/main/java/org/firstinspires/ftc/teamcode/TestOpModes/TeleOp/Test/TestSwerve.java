@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
 import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
 
 @TeleOp(name = "🥵", group = "test")
@@ -20,7 +21,7 @@ public class TestSwerve extends LinearOpMode {
         dashboardTelemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         g1 = new GamepadEx(gamepad1);
 
-        swerve = swerve.getInstance(this, CleverSwerve.Localizers.IMU);
+        swerve = swerve.getInstance(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.TELE_OP);
         swerve.setTelemetry(dashboardTelemetry);
 
 
@@ -28,7 +29,7 @@ public class TestSwerve extends LinearOpMode {
 
 
         while (opModeIsActive()) {
-            swerve.joystickDrive(g1.getLeftX(), -g1.getLeftY(), g1.getRightX());
+            swerve.drive(g1.getLeftX(), -g1.getLeftY(), g1.getRightX());
 
             //dashboardTelemetry.addLine("             POSE"                                       );
             //dashboardTelemetry.addData("x:        ", swerve.getPoseEstimate().x                      );

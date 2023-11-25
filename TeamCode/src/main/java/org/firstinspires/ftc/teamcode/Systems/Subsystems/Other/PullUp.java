@@ -14,20 +14,22 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Generals.Enums;
 
-public class PullUp implements Enums{
+public class PullUp implements Enums.Other {
     private final DcMotorEx motor;
     private final DigitalChannel magnetic;
 
-    private HardwareMap hardwareMap = null;
+    private HardwareMap hardwareMap;
 
-    private static double hangingEncoderPosition = -6400;
-    private static double downEncoderPosition = -9700;
+    private static double hangingEncoderPosition = -5000;
+    private static double downEncoderPosition = -6300;
 
+    private boolean hasReset = false;
     private boolean hasToGetToHang = true;
     private boolean hasToGetAllTheWayDown = true;
     private boolean isReallyAllTheWayUp = false;
 
     private PullUpPositions position = PullUpPositions.PENDING;
+    private PullUpPositions lastPosition = PullUpPositions.PENDING;
 
     public PullUp(HardwareMap hardwareMap) {
         this.hardwareMap = hardwareMap;
@@ -69,6 +71,7 @@ public class PullUp implements Enums{
                     position = PullUpPositions.PENDING;
                     hasToGetToHang = true;
                     hasToGetAllTheWayDown = true;
+                    hasReset = true;
                     setState(PullUpPositions.PENDING);
 
                 } else { motor.setPower(1); }
@@ -76,7 +79,7 @@ public class PullUp implements Enums{
 
             case HANGING: {
                 if (hasToGetToHang) {
-                    if (motor.getCurrentPosition() >= hangingEncoderPosition) { motor.setPower(-1); }
+                    if (encoderPosition >= hangingEncoderPosition) { motor.setPower(-1); }
                     else {
                         motor.setPower(0);
                         hasToGetToHang = false;
@@ -88,7 +91,7 @@ public class PullUp implements Enums{
             } break;
 
             case DOWN: {
-                if (hasToGetAllTheWayDown && motor.getCurrentPosition() <= downEncoderPosition) { motor.setPower(-1); }
+                if (hasToGetAllTheWayDown && encoderPosition >= downEncoderPosition && hasReset) { motor.setPower(-1); }
                 else {
                     motor.setPower(0);
                     hasToGetAllTheWayDown = false;
@@ -99,7 +102,7 @@ public class PullUp implements Enums{
         }
     }
 
-    public double getPosition() { return motor.getCurrentPosition(); }
+    public double getPosition() { return encoderPosition; }
 
     public PullUpPositions getState() { return position; }
 
@@ -111,7 +114,11 @@ public class PullUp implements Enums{
             motor.setPower(power);
     }
 
-    public boolean isConstrained(DcMotorEx motor) { return getCurrent(motor) > 4; }
-
     public boolean isAllTheWayUp() { return magnetic.getState() ? false : true; }
+
+    private double encoderPosition;
+
+    public void read() {
+        encoderPosition = motor.getCurrentPosition();
+    }
 }

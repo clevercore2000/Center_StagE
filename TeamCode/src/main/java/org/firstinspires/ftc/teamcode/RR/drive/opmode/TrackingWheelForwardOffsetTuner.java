@@ -9,7 +9,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.MovingStatistics;
 
 import org.firstinspires.ftc.robotcore.internal.system.Misc;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
 
 /**
@@ -38,12 +39,13 @@ public class TrackingWheelForwardOffsetTuner extends LinearOpMode {
     public static int NUM_TRIALS = 5;
     public static int DELAY = 1000; // ms
     public static double FORWARD_OFFSET = 0;
+    CleverSwerve swerve;
 
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        CleverSwerve swerve = new CleverSwerve(this, CleverSwerve.Localizers.CUSTOM);
+        swerve = swerve.getInstance(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.AUTONOMUS);
 
 
         telemetry.addLine("Press play to begin the forward offset tuner");

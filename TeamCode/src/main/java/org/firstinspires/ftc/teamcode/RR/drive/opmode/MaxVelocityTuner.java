@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.RR.drive.opmode;
 
-import static org.firstinspires.ftc.teamcode.Unnamed.Math.Transformations.Pose_2_Pose2d;
+import static org.firstinspires.ftc.teamcode.WayFinder.Math.Transformations.Pose_2_Pose2d;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
 import org.firstinspires.ftc.teamcode.RR.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
 
@@ -34,10 +35,11 @@ public class MaxVelocityTuner extends LinearOpMode {
     private double maxVelocity = 0.0;
 
     private VoltageSensor batteryVoltageSensor;
+    CleverSwerve swerve;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        CleverSwerve swerve = new CleverSwerve(this, CleverSwerve.Localizers.CUSTOM);
+        swerve = swerve.getInstance(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.AUTONOMUS);
 
         batteryVoltageSensor = hardwareMap.voltageSensor.iterator().next();
 
@@ -57,14 +59,14 @@ public class MaxVelocityTuner extends LinearOpMode {
         timer = new ElapsedTime();
 
         while (!isStopRequested() && timer.seconds() < RUNTIME) {
-            swerve.joystickDrive(1, 0, 0);
+            swerve.drive(1, 0, 0);
 
             Pose2d velocity = Objects.requireNonNull(Pose_2_Pose2d(swerve.getVelocityEstimate()), "poseVelocity() must not be null. Ensure that the getWheelVelocities() method has been overridden in your localizer.");
 
             maxVelocity = Math.max(velocity.vec().norm(), maxVelocity);
         }
 
-        swerve.joystickDrive(0, 0, 0);
+        swerve.drive(0, 0, 0);
 
         double effectiveKf = DriveConstants.getMotorVelocityF(veloInchesToTicks(maxVelocity));
 

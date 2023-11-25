@@ -16,12 +16,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.Generals.Enums;
 import org.firstinspires.ftc.teamcode.TestOpModes.TeleOp.Tuning.PIDF_controllerTuner;
 import org.firstinspires.ftc.teamcode.Generals.MotionProfile;
-import org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling.MotionState;
-import org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling.ProfileConstrains;
-import org.firstinspires.ftc.teamcode.Unnamed.MotionProfiling.Trapezoidal.TrapezoidalMotionProfile;
+import org.firstinspires.ftc.teamcode.WayFinder.MotionProfiling.MotionState;
+import org.firstinspires.ftc.teamcode.WayFinder.MotionProfiling.ProfileConstrains;
+import org.firstinspires.ftc.teamcode.WayFinder.MotionProfiling.Trapezoidal.TrapezoidalMotionProfile;
 import org.firstinspires.ftc.teamcode.Util.MotionHardware.Init;
 
-public class Outtake implements Enums {
+public class Outtake implements Enums.Scoring {
     private final DcMotorEx leftMotor;
     private final DcMotorEx rightMotor;
     private final Servo gripper;

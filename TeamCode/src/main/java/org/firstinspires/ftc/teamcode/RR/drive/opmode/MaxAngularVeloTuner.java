@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.RR.drive.opmode;
 
-import static org.firstinspires.ftc.teamcode.Unnamed.Math.Transformations.Pose_2_Pose2d;
+import static org.firstinspires.ftc.teamcode.WayFinder.Math.Transformations.Pose_2_Pose2d;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
 import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
 
 import java.util.Objects;
@@ -30,10 +31,11 @@ public class MaxAngularVeloTuner extends LinearOpMode {
 
     private ElapsedTime timer;
     private double maxAngVelocity = 0.0;
+    CleverSwerve swerve;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        CleverSwerve swerve = new CleverSwerve(this, CleverSwerve.Localizers.CUSTOM);
+        swerve = swerve.getInstance(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.AUTONOMUS);
 
         Telemetry telemetry = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
 
@@ -51,14 +53,14 @@ public class MaxAngularVeloTuner extends LinearOpMode {
         timer = new ElapsedTime();
 
         while (!isStopRequested() && timer.seconds() < RUNTIME) {
-            swerve.joystickDrive(0, 0, 1);
+            swerve.drive(0, 0, 1);
 
             Pose2d velocity = Objects.requireNonNull(Pose_2_Pose2d(swerve.getVelocityEstimate()), "poseVelocity() must not be null. Ensure that the getWheelVelocities() method has been overridden in your localizer.");
 
             maxAngVelocity = Math.max(velocity.getHeading(), maxAngVelocity);
         }
 
-        swerve.joystickDrive(0, 0, 0);
+        swerve.drive(0, 0, 0);
 
         telemetry.addData("Max Angular Velocity (rad)", maxAngVelocity);
         telemetry.addData("Max Angular Velocity (deg)", Math.toDegrees(maxAngVelocity));

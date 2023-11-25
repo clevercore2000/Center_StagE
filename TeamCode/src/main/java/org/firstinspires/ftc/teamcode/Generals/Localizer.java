@@ -2,13 +2,15 @@ package org.firstinspires.ftc.teamcode.Generals;
 
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 
 /**Localizer interface for smoother code*/
 public interface Localizer {
     double getAngle(AngleUnit unit);
 
     void update();
+
+    void read();
 
     Pose getRobotPosition();
 

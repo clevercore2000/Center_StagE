@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.Systems;
 
 import static org.firstinspires.ftc.teamcode.Systems.Subsystems.Scoring.Outtake.safeRotationThreshold;
-import static org.firstinspires.ftc.teamcode.Unnamed.Math.MathFormulas.sign;
-import static org.firstinspires.ftc.teamcode.Unnamed.Math.MathFormulas.toPower;
+import static org.firstinspires.ftc.teamcode.WayFinder.Math.MathFormulas.sign;
+import static org.firstinspires.ftc.teamcode.WayFinder.Math.MathFormulas.toPower;
 
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.Util.SensorEx.CompareRGB;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScoringSystem implements SystemFunctionalities, Enums {
+public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enums {
     public static ScoringSystem instance = null;
     public static double numberOfInstanceCalls = 0;
     public static double numberOfAutonomusInstanceCalls = 0, numberOfTeleOpInstanceCalls = 0;
@@ -531,7 +531,7 @@ public class ScoringSystem implements SystemFunctionalities, Enums {
 
     /**Multi-action methods*/
 
-    public void score(Scoring scoringOption) {
+    public void score(Score scoringOption) {
         boolean hasToWaitForLift = (outtake.getLiftState() == LiftStates.COLLECT);
 
         switch (scoringOption) {

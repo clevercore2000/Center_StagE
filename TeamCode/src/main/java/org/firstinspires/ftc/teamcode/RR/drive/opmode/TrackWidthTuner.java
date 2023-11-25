@@ -10,7 +10,8 @@ import com.qualcomm.robotcore.util.MovingStatistics;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.internal.system.Misc;
-import org.firstinspires.ftc.teamcode.Unnamed.Localization.Pose;
+import org.firstinspires.ftc.teamcode.Generals.Enums;
+import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
 
 /*
@@ -28,12 +29,13 @@ public class TrackWidthTuner extends LinearOpMode {
     public static double ANGLE = 180; // deg
     public static int NUM_TRIALS = 5;
     public static int DELAY = 1000; // ms
+    CleverSwerve swerve;
 
     @Override
     public void runOpMode() throws InterruptedException {
         Telemetry telemetry = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        CleverSwerve swerve = new CleverSwerve(this, CleverSwerve.Localizers.IMU);
+        swerve = swerve.getInstance(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.AUTONOMUS);
         // TODO: if you haven't already, set the localizer to something that doesn't depend on
         //  drive encoders for computing the heading
 
@@ -67,7 +69,7 @@ public class TrackWidthTuner extends LinearOpMode {
                 swerve.update();
             }
 
-            double trackWidth = CleverSwerve.TRACK_WIDTH * Math.toRadians(ANGLE) / headingAccumulator;
+            double trackWidth = CleverSwerve.BASE_WIDTH * Math.toRadians(ANGLE) / headingAccumulator;
             trackWidthStats.add(trackWidth);
 
             sleep(DELAY);

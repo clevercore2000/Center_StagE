@@ -22,18 +22,23 @@ public class TestCustomFollower extends LinearOpMode {
         swerve.setPoseEstimate(new Pose());
 
         follower = new GenericFollower(swerve.getLocalizer())
-                .constructPurePursuit(new Point(20, 50))
-                .constructPurePursuit(new Point( 100, 20))
-                .constructPurePursuit(new Point(0, 0))
-                .add()
+                .newPurePursuit()
+                    .addPoint(new Point(20, 50))
+                    .addPoint(new Point( 100, 20))
+                    .addPoint(new Point(0, 0))
+                    .addPath()
+                .newBezierCurve()
+                    .addPoint(new Point(40, 40))
+                    .addPoint(new Point(12, 60))
+                    .addPoint(new Point( 100, 100))
+                    .addPath()
                 .build();
 
         waitForStart();
 
-        follower.follow();
+        follower.start();
 
         while (opModeIsActive()) {
-            swerve.read();
             follower.read();
 
             if (follower.isBusy()) {

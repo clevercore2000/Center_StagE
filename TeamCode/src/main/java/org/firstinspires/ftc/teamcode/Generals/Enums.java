@@ -154,5 +154,11 @@ public interface Enums {
             Y
         }
     }
+
+    interface Pathing{
+        public enum Polynomial{
+            UNDEFINED, constant, linear, quadratic, cubic, quartic, quintic, MULTIPLE
+        }
+    }
 }
 

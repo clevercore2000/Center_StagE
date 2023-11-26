@@ -7,15 +7,14 @@ import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 public interface Paths {
     void update() throws NotAPolynomialException;
 
-    void read();
+    Paths addPoint(Point newPoint);
+    void build();
 
     void start();
     void pause();
     void resume();
 
     boolean isBusy();
-
-    Pose getPosition();
 
     Point getPointToFollow();
 

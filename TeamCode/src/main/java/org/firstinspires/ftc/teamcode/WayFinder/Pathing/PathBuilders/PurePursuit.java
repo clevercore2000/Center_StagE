@@ -15,58 +15,67 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PurePursuit implements Paths {
-    private double radiusToSearch = 20; //cm
-    //TODO: tune this
-
-    private int currentLineFirstPoint = 0;
-
-    private Localizer robotLocalizer;
-    private Pose robotPosition;
-    private double circleCenterX, circleCenterY;
-
-    private double pointsLeft;
     private List<Point> pathPoints = new ArrayList<Point>();
     private Point lastFollowedPoint = new Point();
     private Point pointToFollow;
+    private double pointsLeft;
+
+    private int currentLineFirstPoint = 0;
+
+    private double radiusToSearch = 20; //cm
+    //TODO: tune this
+
+    private Pose robotPosition;
+    private double circleCenterX, circleCenterY;
 
     private boolean isOnSameLine = true;
     private boolean isStarted = false, isPaused = false, isBusy= false, isDone = false;
-    private boolean useLastPointCorrection = true; //shifting the last point some small value from actual pose and use PID to get to final position
+    private boolean useLastPointCorrection = false; //shifting the last point some small value from actual pose and use PID to get to final position
 
+    private Point correctionPoint;
     private double lastThreePointsDifference = 0;
     private double correction = 100; //cm (applies to x and y)
     //TODO: tune this too
-    private Point correctionPoint;
 
-    public PurePursuit(Localizer localizer) { this.robotLocalizer = localizer; }
+    //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-    public PurePursuit(Localizer localizer, double radius) {
-        this.robotLocalizer = localizer;
-        this.radiusToSearch = radius;
-    }
+    public PurePursuit() {}
 
-    public PurePursuit(Localizer localizer, double radius, List<Point> pastPathPoints) {
-        this.robotLocalizer = localizer;
+    public PurePursuit(double radius) { this.radiusToSearch = radius; }
+
+    public PurePursuit(double radius, List<Point> pastPathPoints) {
         this.radiusToSearch = radius;
         this.pathPoints = pastPathPoints;
     }
 
-    public PurePursuit addPoint(Point newPoint) {
+    //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+    @Override
+    public Paths addPoint(Point newPoint) {
         pathPoints.add(newPoint);
-        return new PurePursuit(robotLocalizer, radiusToSearch, pathPoints);
+        return new PurePursuit(radiusToSearch, pathPoints);
     }
 
-    public void start() {
+    @Override
+    public void build() {
         if (useLastPointCorrection) {
             lastThreePointsDifference = 1;
             addCorrectionLastPoint();
         }
-        isStarted = true;
     }
 
+    //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+    @Override
+    public void start() { isStarted = true; isBusy = true; }
+
+    @Override
     public void pause() { isPaused = true; }
 
+    @Override
     public void resume() { isPaused = false; }
+
+    //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
     /**Hierarchy for following points:
      *      -points found on next line
@@ -76,6 +85,7 @@ public class PurePursuit implements Paths {
      *
      *
      * */
+    @Override
     public void update() throws NotAPolynomialException {
         updatePosition();
 
@@ -155,20 +165,12 @@ public class PurePursuit implements Paths {
 
     }
 
-    private void addCorrectionLastPoint() {
-        double lastPointX = pathPoints.get(pathPoints.size() - 1).x;
-        double lastPointY = pathPoints.get(pathPoints.size() - 1).y;
-
-        pathPoints.remove(pathPoints.get(pathPoints.size() - 1));
-        pathPoints.add(new Point(lastPointX - correction, lastPointY - correction));
-    }
-
     private void updatePosition() {
         circleCenterX = robotPosition.x;
         circleCenterY = robotPosition.y;
     }
 
-    public void usingCorrection(boolean using) { this.useLastPointCorrection = using; }
+    //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
     private List<Point> findCircleIntersections(Point point1, Point point2) throws NotAPolynomialException {
         Coefficients lineEcuationCoefficients = findLinearFunction(point1, point2);
@@ -206,19 +208,42 @@ public class PurePursuit implements Paths {
         return Math.hypot(point2.x - point1.x, point2.y - point1.y);
     }
 
+    private void addCorrectionLastPoint() {
+        double lastPointX = pathPoints.get(pathPoints.size() - 1).x;
+        double lastPointY = pathPoints.get(pathPoints.size() - 1).y;
+
+        pathPoints.remove(pathPoints.get(pathPoints.size() - 1));
+        pathPoints.add(new Point(lastPointX - correction, lastPointY - correction));
+    }
+
+    //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+    public void usingCorrection(boolean using) { this.useLastPointCorrection = using; }
+
+    //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
     public Pose getPosition() { return robotPosition; }
 
+    @Override
     public Point getPointToFollow() { return pointToFollow; }
 
     public Point getLastFollowedPoint() { return lastFollowedPoint; }
 
+    //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+    public boolean isStarted() { return isStarted; }
+
+    public boolean isPaused() { return isPaused; }
+
+    @Override
     public boolean isBusy() { return isBusy; }
 
-    //call this every loop
-    public void read() {
-        robotLocalizer.read();
-        robotLocalizer.update();
-        robotPosition = robotLocalizer.getRobotPosition();
-    }
+    public boolean isDone() { return isDone; }
+
+    //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+    public void setRobotPosition(Pose position) { robotPosition = position; }
+
+    //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 }
 

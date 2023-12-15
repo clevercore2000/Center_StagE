@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.WayFinder.Pathing.PathFollowers;
 
-import static org.firstinspires.ftc.teamcode.Generals.SwerveConstants.headingP;
-import static org.firstinspires.ftc.teamcode.Generals.SwerveConstants.xyP;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants.headingP;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants.xyP;
 
 import org.firstinspires.ftc.teamcode.Generals.Localizer;
 import org.firstinspires.ftc.teamcode.Generals.MotionProfile;
@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.WayFinder.Localization.Point;
 import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 import org.firstinspires.ftc.teamcode.WayFinder.MotionProfiling.ProfileConstrains;
 import org.firstinspires.ftc.teamcode.WayFinder.MotionProfiling.Trapezoidal.TrapezoidalMotionProfile;
+import org.firstinspires.ftc.teamcode.WayFinder.Pathing.PathBuilders.BezierCurve;
 import org.firstinspires.ftc.teamcode.WayFinder.Pathing.PathBuilders.PurePursuit;
 
 import java.util.List;
@@ -27,40 +28,28 @@ public class GenericFollower {
     private boolean isPaused;
     private boolean isBusy;
 
+    Pose currentRobotPose;
+
+    //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
     public GenericFollower(Localizer localizer) {
         this.localizer = localizer;
     }
 
-    private GenericFollower(Localizer localizer, Paths currentBuildPath, List<Paths> pathsToFollow, MotionProfile profile) {
-        this.localizer = localizer;
-        this.pathsToFollow = pathsToFollow;
-        this.currentBuildPath = currentBuildPath;
-    }
+    //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-    public GenericFollower add() {
+    public GenericFollower addPath() {
+        currentBuildPath.build();
         pathsToFollow.add(currentBuildPath);
-        return new GenericFollower(localizer, null, pathsToFollow, profile);
+
+        return this;
     }
 
-    public GenericFollower constructPurePursuit(Point pathPoint) {
-        if (!(currentBuildPath instanceof PurePursuit)) { //if isn't a PurePursuit object => you forgot to add last type of Path lmao
-            pathsToFollow.add(currentBuildPath);
-            currentBuildPath = null;
-        }
+    public GenericFollower addPoint(Point newPoint) {
+        if (currentBuildPath != null)
+            currentBuildPath.addPoint(newPoint);
 
-        if (currentBuildPath == null)
-            currentBuildPath = new PurePursuit(localizer);
-
-        ((PurePursuit) currentBuildPath).addPoint(pathPoint);
-
-        return new GenericFollower(localizer, currentBuildPath, pathsToFollow, profile);
-    }
-
-    public GenericFollower constructTrapezoidalProfile(double start, double end, ProfileConstrains constrains) {
-        profile = new TrapezoidalMotionProfile(start, end, constrains);
-
-        return new GenericFollower(localizer, currentBuildPath, pathsToFollow, profile);
+        return this;
     }
 
     public GenericFollower build() {
@@ -74,25 +63,45 @@ public class GenericFollower {
         return this;
     }
 
-    public MotionSignal generateSignal() throws NotAPolynomialException {
-        currentFollowedPath.update();
+    //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-        Point currentFollowedPoint = currentFollowedPath.getPointToFollow();
-        Pose currentRobotPose = currentFollowedPath.getPosition();
-        double heading = 0;
+    public GenericFollower newPurePursuit() {
+        if (!(currentBuildPath instanceof PurePursuit)) { //if isn't a PurePursuit object => you forgot to add last type of Path lmao
+            currentBuildPath.build();
+            pathsToFollow.add(currentBuildPath);
+            currentBuildPath = null;
+        }
 
-        if (!maintainHeading) { //you have 2 points and you want to face the target point, so you find the angle between the 2 points, easy
-            heading = Math.atan2(currentFollowedPoint.y - currentRobotPose.y,
-                    currentRobotPose.x - currentRobotPose.y);
-        } else { heading = currentRobotPose.heading; } //just maintain heading, cuz why not
+        if (currentBuildPath == null)
+            currentBuildPath = new PurePursuit();
 
-        MotionSignal signal = new MotionSignal();
-        signal.velocity = new Pose(currentFollowedPoint.subtract(currentRobotPose.getPoint()).multiplyBy(xyP), heading * headingP);
 
-        return signal;
+        return this;
     }
 
-    public void follow() {
+    public GenericFollower newBezierCurve() {
+        if (!(currentBuildPath instanceof BezierCurve)) { //if isn't a PurePursuit object => you forgot to add last type of Path lmao
+            currentBuildPath.build();
+            pathsToFollow.add(currentBuildPath);
+            currentBuildPath = null;
+        }
+
+        if (currentBuildPath == null)
+            currentBuildPath = new BezierCurve(new Pose());
+
+
+        return this;
+    }
+
+    public GenericFollower newTrapezoidalProfile(double start, double end, ProfileConstrains constrains) {
+        profile = new TrapezoidalMotionProfile(start, end, constrains);
+
+        return this;
+    }
+
+    //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+    public void start() {
         isStarted = true;
     }
 
@@ -108,6 +117,26 @@ public class GenericFollower {
         isPaused = false;
     }
 
+    //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+    public MotionSignal generateSignal() throws NotAPolynomialException {
+        currentFollowedPath.update();
+
+        Point currentFollowedPoint = currentFollowedPath.getPointToFollow();
+        double heading = 0;
+
+        if (!maintainHeading) { //you have 2 points and you want to face the target point, so you find the angle between the 2 points, easy
+            heading = Math.atan2(currentFollowedPoint.y - currentRobotPose.y,
+                    currentRobotPose.x - currentRobotPose.y);
+        } else { heading = currentRobotPose.heading; } //just maintain heading, cuz why not
+
+        MotionSignal signal = new MotionSignal();
+        signal.velocity = new Pose(currentFollowedPoint.subtract(currentRobotPose.getPoint()).multiplyBy(xyP), heading * headingP);
+
+        return signal;
+    }
+
+    //call this every loop
     public void read(){
         if (!currentFollowedPath.isBusy() && isStarted && !isPaused) {
             currentFollowedPath = pathsToFollow.iterator().hasNext() ? pathsToFollow.iterator().next() : null;
@@ -115,8 +144,13 @@ public class GenericFollower {
                 currentFollowedPath.start();
         }
 
-        if (currentFollowedPath != null)
-            currentFollowedPath.read();
+        localizer.read();
+        localizer.update();
+        currentRobotPose = localizer.getRobotPosition();
+
+        if (currentFollowedPath instanceof PurePursuit)
+            ((PurePursuit) currentFollowedPath).setRobotPosition(currentRobotPose);
+
     }
 
     public boolean isBusy() {

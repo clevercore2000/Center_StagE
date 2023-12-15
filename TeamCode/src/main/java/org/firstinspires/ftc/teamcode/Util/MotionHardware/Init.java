@@ -9,12 +9,9 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigu
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
-public class Init {
+public interface Init {
 
-    /**CurrentUnit = CurrentUnit.AMPS*/
-    public static final double currentThreshold = 8.7; //To be tuned
-
-    public static void initializeMotor(DcMotorEx motor) {
+    static void initializeMotor(DcMotorEx motor) {
         MotorConfigurationType motorConfigurationType = motor.getMotorType().clone();
         motorConfigurationType.setAchieveableMaxRPMFraction(1);
         motor.setMotorType(motorConfigurationType);
@@ -24,7 +21,7 @@ public class Init {
 
 
 
-    public static void initializeMotor(DcMotorEx motor, DcMotor.RunMode runMode) {
+    static void initializeMotor(DcMotorEx motor, DcMotor.RunMode runMode) {
         MotorConfigurationType motorConfigurationType = motor.getMotorType().clone();
         motorConfigurationType.setAchieveableMaxRPMFraction(1);
         motor.setMotorType(motorConfigurationType);
@@ -35,7 +32,7 @@ public class Init {
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
-    public static void initializeMotor(DcMotorEx motor, DcMotorSimple.Direction direction) {
+    static void initializeMotor(DcMotorEx motor, DcMotorSimple.Direction direction) {
         MotorConfigurationType motorConfigurationType = motor.getMotorType().clone();
         motorConfigurationType.setAchieveableMaxRPMFraction(1);
         motor.setMotorType(motorConfigurationType);
@@ -48,7 +45,7 @@ public class Init {
 
 
 
-    public static void initializeMotor(DcMotorEx motor, DcMotor.RunMode runMode, DcMotorSimple.Direction direction) {
+    static void initializeMotor(DcMotorEx motor, DcMotor.RunMode runMode, DcMotorSimple.Direction direction) {
         MotorConfigurationType motorConfigurationType = motor.getMotorType().clone();
         motorConfigurationType.setAchieveableMaxRPMFraction(1);
         motor.setMotorType(motorConfigurationType);
@@ -63,19 +60,20 @@ public class Init {
 
 
 
-    public static void resetEncoders(DcMotorEx motor) {
+    static void resetEncoders(DcMotorEx motor) {
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motor.setPower(0);
     }
 
-    public static void resetEncoders(DcMotorEx motor, DcMotor.RunMode runMode) {
+    static void resetEncoders(DcMotorEx motor, DcMotor.RunMode runMode) {
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setMode(runMode);
     }
 
-    public static double getCurrent(DcMotorEx motor) { return motor.getCurrent(CurrentUnit.AMPS); }
+    static double getCurrent(DcMotorEx motor) { return motor.getCurrent(CurrentUnit.AMPS); }
 
-    public static boolean isConstrained(DcMotorEx motor) { return getCurrent(motor) > currentThreshold; }
+    static boolean isConstrained(DcMotorEx motor, double currentThreshold) { return getCurrent(motor) > currentThreshold; }
 
+    static boolean isConstrained(double amperage, double currentThreshold) { return amperage > currentThreshold; }
 }

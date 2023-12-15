@@ -64,7 +64,7 @@ public class TestIntakeFull extends LinearOpMode implements Enums.Scoring {
 
 
     private void Init() {
-        system = system.getInstance(this, Enums.OpMode.TELE_OP);
+        system = new ScoringSystem(this, Enums.OpMode.TELE_OP);
         system.resetNumberOfCollectedPixelsToZero();
 
         dashboardTelemetry = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());

@@ -28,13 +28,13 @@ public class TestPurePursuit extends LinearOpMode {
         localizer.setPositionEstimate(new Pose(0,0,0));
 
 
-        swerve = swerve.getInstance(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.TELE_OP);
+        swerve = new CleverSwerve(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.TELE_OP);
         dashboardTelemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        follower = new PurePursuit(localizer)
-                .addPoint(new Point(60, 60))
-                .addPoint(new Point(60, 0))
-                .addPoint(new Point(0, -20));
+        //follower = new PurePursuit(localizer.getRobotPosition())
+              //  .addPoint(new Point(60, 60))
+               // .addPoint(new Point(60, 0))
+              //  .addPoint(new Point(0, -20));
 
         waitForStart();
         follower.start();

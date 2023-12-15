@@ -7,6 +7,7 @@ import com.acmerobotics.roadrunner.util.NanoClock;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.checkerframework.checker.units.qual.C;
 import org.firstinspires.ftc.robotcore.internal.system.Misc;
 import org.firstinspires.ftc.teamcode.Generals.Enums;
 import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
@@ -18,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.firstinspires.ftc.teamcode.Generals.Enums.Swerve.Localizers.CUSTOM;
-import static org.firstinspires.ftc.teamcode.Swerve.CleverSwerve.getInstance;
 import static org.firstinspires.ftc.teamcode.Swerve.CleverSwerve.rpmToVelocity;
 import static org.firstinspires.ftc.teamcode.Swerve.SwerveModule.SwerveModule.MAX_RPM;
 
@@ -43,7 +43,7 @@ public class AutomaticFeedforwardTuner extends LinearOpMode implements Enums.Swe
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        CleverSwerve swerve = getInstance(this, CUSTOM, Enums.OpMode.AUTONOMUS);
+        CleverSwerve swerve = new CleverSwerve(this, CUSTOM, Enums.OpMode.AUTONOMUS);
 
         NanoClock clock = NanoClock.system();
 

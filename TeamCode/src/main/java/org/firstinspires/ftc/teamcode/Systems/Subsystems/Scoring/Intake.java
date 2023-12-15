@@ -13,6 +13,8 @@ public class Intake implements Enums.Scoring {
     private final DcMotorEx motor;
     private final Servo left, right;
 
+    private double intakeAmperage;
+
     private LinearOpMode opMode;
 
     private IntakeMotorStates motorState = IntakeMotorStates.STOP;
@@ -59,9 +61,9 @@ public class Intake implements Enums.Scoring {
     }
 
     /**Manual set for the intake state*/
-    public void setState(IntakeMotorStates state) { motorState = state; }
+    public void setState(IntakeMotorStates state) { motorState = state; updateMotor(); }
 
-    public void setState(IntakeArmStates state) { armState = state; }
+    public void setState(IntakeArmStates state) { armState = state; updateServo(); }
 
 
     /*
@@ -91,7 +93,7 @@ public class Intake implements Enums.Scoring {
         }
     }
 
-    public void update(){
+    private void update(){
         updateServo();
         updateMotor();
     }
@@ -131,8 +133,6 @@ public class Intake implements Enums.Scoring {
     */
 
 
-    private double intakeAmperage;
-
-    synchronized public void read() { intakeAmperage = motor.getCurrent(CurrentUnit.AMPS); }
+    public void read() { intakeAmperage = motor.getCurrent(CurrentUnit.AMPS); }
 
 }

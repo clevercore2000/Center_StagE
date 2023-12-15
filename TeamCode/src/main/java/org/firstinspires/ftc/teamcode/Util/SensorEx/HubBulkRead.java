@@ -15,7 +15,7 @@ public class HubBulkRead {
     private static HubBulkRead instance = null;
     private boolean justControlHub = false;
 
-    private LynxModule.BulkCachingMode currentCachingMode = LynxModule.BulkCachingMode.MANUAL;
+    private LynxModule.BulkCachingMode currentCachingMode = LynxModule.BulkCachingMode.AUTO;
 
     public static HubBulkRead getInstance(HardwareMap hardwareMap) {
         if (instance == null) {
@@ -33,7 +33,7 @@ public class HubBulkRead {
         return instance;
     }
 
-    public HubBulkRead(HardwareMap hardwareMap){
+    public void construct(HardwareMap hardwareMap) {
         LynxModuleUtil.ensureMinimumFirmwareVersion(hardwareMap);
         allHubs = hardwareMap.getAll(LynxModule.class);
 
@@ -41,17 +41,14 @@ public class HubBulkRead {
 
         CONTROL_HUB = allHubs.get(0);
         if (allHubs.size() > 1) { EXPANSION_HUB = allHubs.get(1); }
-            else { justControlHub = true; }
+        else { justControlHub = true; }
     }
 
+    public HubBulkRead(HardwareMap hardwareMap){ construct(hardwareMap); }
+
     public HubBulkRead(HardwareMap hardwareMap, LynxModule.BulkCachingMode cachingMode){
-        allHubs = hardwareMap.getAll(LynxModule.class);
         this.currentCachingMode = cachingMode;
-
-        init(currentCachingMode);
-
-        CONTROL_HUB = allHubs.get(0);
-        if (allHubs.size() > 1) { EXPANSION_HUB = allHubs.get(1); }
+        construct(hardwareMap);
     }
 
     private void init(LynxModule.BulkCachingMode cachingMode) {
@@ -60,15 +57,15 @@ public class HubBulkRead {
         }
     }
 
-    synchronized public void clearCache(Enums.Hubs type) {
+    public void clearCache(Enums.Hubs type) {
         switch (type) {
-            case CONTROL_HUB: { CONTROL_HUB.clearBulkCache(); } break;
-            case EXPANSION_HUB: { if (!justControlHub) { EXPANSION_HUB.clearBulkCache(); } } break;
             case ALL: {
                 for(LynxModule hub : allHubs) {
                     hub.clearBulkCache();
                 }
             } break;
+            case CONTROL_HUB: { CONTROL_HUB.clearBulkCache(); } break;
+            case EXPANSION_HUB: { if (!justControlHub) { EXPANSION_HUB.clearBulkCache(); } } break;
             default: {}
         }
     }

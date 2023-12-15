@@ -1,5 +1,17 @@
 package org.firstinspires.ftc.teamcode.Swerve;
 
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants.FIELD_CENTRIC;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants.HEADING_PID;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants.K_STATIC;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants.K_VELOCITY;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants.MAX_ACCEL;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants.MAX_ANG_ACCEL;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants.MAX_ANG_VEL;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants.MAX_VEL;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants.TRANSLATIONAL_PID;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants.USING_FEEDFORWARD;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants.headingP;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants.xyP;
 import static org.firstinspires.ftc.teamcode.Swerve.SwerveModule.SwerveModule.GEAR_RATIO;
 import static org.firstinspires.ftc.teamcode.Swerve.SwerveModule.SwerveModule.WHEEL_RADIUS;
 import static org.firstinspires.ftc.teamcode.WayFinder.Math.Transformations.Pose2d_2_Pose;
@@ -24,7 +36,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Generals.Enums;
-import org.firstinspires.ftc.teamcode.Generals.SwerveConstants;
+import org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants;
 import org.firstinspires.ftc.teamcode.Localizer.Custom.CustomSwerveLocalizer;
 import org.firstinspires.ftc.teamcode.Generals.Localizer;
 import org.firstinspires.ftc.teamcode.Localizer.IMU.Threaded_IMU;
@@ -38,15 +50,18 @@ import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 import org.firstinspires.ftc.teamcode.WayFinder.Pathing.PathFollowers.MotionSignal;
 
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class CleverSwerve extends SwerveKinematics implements SwerveConstants, Enums.Swerve, Enums {
+public class CleverSwerve extends SwerveKinematics implements Enums.Swerve, Enums {
     private static CleverSwerve instance;
 
     private SwerveModule frontLeftModule, frontRightModule, backLeftModule, backRightModule;
-    private List<SwerveModule> modules;
+    private List<SwerveModule> modules = new ArrayList<>();
     private SwerveState currentState;
+
+    double batteryVoltage;
 
     private Localizer localizer;
     private Localizers localizerType;
@@ -68,10 +83,7 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants, E
     */
 
 
-    public static CleverSwerve getInstance(LinearOpMode opMode, Localizers localizerType, OpMode opModeType  ) {
-        instance = new CleverSwerve(opMode, localizerType, opModeType);
-        return instance;
-    }
+    public CleverSwerve getInstance() { return this; }
 
     public CleverSwerve(LinearOpMode opMode, Localizers localizerType, OpMode opModeType) {
         this.opMode = opMode;
@@ -87,8 +99,8 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants, E
         setSpeedDirection(Arrays.asList(
                 DcMotorSimple.Direction.FORWARD,
                 DcMotorSimple.Direction.FORWARD,
-                DcMotorSimple.Direction.FORWARD,
-                DcMotorSimple.Direction.FORWARD
+                DcMotorSimple.Direction.REVERSE,
+                DcMotorSimple.Direction.REVERSE
         ));
 
         setAngleDirection(Arrays.asList(
@@ -97,6 +109,10 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants, E
                 Servo.Direction.FORWARD,
                 Servo.Direction.FORWARD
         ));
+
+        setOffset(Arrays.asList(
+                0.5, 0.5, 0.5, 0.5
+        ), ModuleOffset.POSITION);
 
         if (motionPackage == MotionPackage.ROADRUNNER) { initializeRoadrunner(); }
 
@@ -120,10 +136,10 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants, E
 
 
     private void initializeModuleList() {
+        modules.add(backLeftModule);
         modules.add(frontLeftModule);
         modules.add(frontRightModule);
         modules.add(backRightModule);
-        modules.add(backLeftModule);
     }
 
     private void initializeRoadrunner() {
@@ -141,13 +157,27 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants, E
 
 
     public void setAngleDirection(List<Servo.Direction> directions) {
-        for (int i = 0; i < directions.size(); i++)
+        for (int i = 0; i < directions.size() && i < modules.size(); i++)
             modules.get(i).setDirection(directions.get(i));
     }
 
     public void setSpeedDirection(List<DcMotorSimple.Direction> directions) {
-        for (int i = 0; i < directions.size(); i++)
+        for (int i = 0; i < directions.size() && i < modules.size(); i++)
             modules.get(i).setDirection(directions.get(i));
+    }
+
+    public void setOffset(List<Double> offsets, ModuleOffset offsetType) {
+        switch (offsetType) {
+            case POSITION: {
+                for (int i = 0; i < offsets.size() && i < modules.size(); i++)
+                    modules.get(i).fromServoPowerToAngle(offsets.get(i).doubleValue());
+            } break;
+
+            case ANGLE: {
+                for (int i = 0; i < offsets.size(); i++)
+                    modules.get(i).setOffset(offsets.get(i).doubleValue());
+            } break;
+        }
     }
 
 
@@ -164,7 +194,7 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants, E
         Pose actualVector;
         if (FIELD_CENTRIC)
             actualVector = new Pose(x, y, head).rotateWithRotationalMatrix(-localizer.getAngle(AngleUnit.RADIANS));
-        else actualVector = new Pose(x, y, head);
+        actualVector = new Pose(x, y, head);
 
         if (Math.abs(actualVector.x) < 0.001 && Math.abs(actualVector.y) < 0.001 && Math.abs(actualVector.heading) < 0.001)
             super.setLocked(true);
@@ -214,7 +244,11 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants, E
 
     public Pose getPoseEstimate() { return localizer.getRobotPosition(); }
 
+    public double getAngle() { return localizer.getAngle(AngleUnit.DEGREES); }
+
     public Pose getVelocityEstimate() { return localizer.getRobotVelocity(); }
+
+    public double getBatteryVoltage() { return batteryVoltage; }
 
     public boolean isConstrained() {
         for (int i = 0; i < modules.size(); i++)
@@ -223,7 +257,10 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants, E
         return false;
     }
 
-    public void read() { localizer.read(); }
+    public void read() {
+        localizer.read();
+        batteryVoltage = batteryVoltageSensor.getVoltage();
+    }
 
 
     /*
@@ -235,6 +272,10 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants, E
 
     public static double rpmToVelocity(double rpm) {
         return rpm * GEAR_RATIO * 2 * Math.PI * WHEEL_RADIUS / 60.0;
+    }
+
+    public void resetAngle() { if (localizer instanceof Threaded_IMU)
+        ((Threaded_IMU) localizer).reset();
     }
 
 
@@ -286,6 +327,7 @@ public class CleverSwerve extends SwerveKinematics implements SwerveConstants, E
 
             telemetry.addData("LOCKED: ", super.isLocked());
             telemetry.addData("is flipped: ", backLeftModule.wheelFlipped);
+            telemetry.addData("Angle: ", getAngle());
 
             telemetry.update();
         }

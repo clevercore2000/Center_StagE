@@ -21,7 +21,7 @@ public class PullUp implements Enums.Other {
     private HardwareMap hardwareMap;
 
     private static double hangingEncoderPosition = -5000;
-    private static double downEncoderPosition = -6300;
+    private static double downEncoderPosition = -7300;
 
     private boolean hasReset = false;
     private boolean hasToGetToHang = true;
@@ -118,7 +118,5 @@ public class PullUp implements Enums.Other {
 
     private double encoderPosition;
 
-    public void read() {
-        encoderPosition = motor.getCurrentPosition();
-    }
+    public void read() { encoderPosition = motor.getCurrentPosition(); }
 }

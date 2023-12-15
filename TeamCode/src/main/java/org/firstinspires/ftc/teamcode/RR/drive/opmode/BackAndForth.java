@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.checkerframework.checker.units.qual.C;
 import org.firstinspires.ftc.teamcode.Generals.Enums;
 import org.firstinspires.ftc.teamcode.RR.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
@@ -35,7 +36,7 @@ public class BackAndForth extends LinearOpMode {
     CleverSwerve swerve;
     @Override
     public void runOpMode() throws InterruptedException {
-        swerve = swerve.getInstance(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.AUTONOMUS);
+        swerve = new CleverSwerve(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.AUTONOMUS);
 
         TrajectorySequence trajectoryForward = swerve.trajectorySequenceBuilder(new Pose())
                 .forward(DISTANCE)

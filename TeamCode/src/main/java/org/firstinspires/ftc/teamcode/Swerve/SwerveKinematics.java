@@ -1,19 +1,22 @@
 package org.firstinspires.ftc.teamcode.Swerve;
 
+import android.annotation.SuppressLint;
+
+import org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants;
 import org.firstinspires.ftc.teamcode.Generals.Enums;
+import org.firstinspires.ftc.teamcode.Localizer.IMU.Threaded_IMU;
 import org.firstinspires.ftc.teamcode.Swerve.SwerveModule.SwerveState;
 import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 
-public abstract class SwerveKinematics implements Enums.Swerve {
+public abstract class SwerveKinematics extends SwerveConstants implements Enums.Swerve  {
 
     /**Robot-specific parameters*/
-    public static double BASE_WIDTH = 13, BASE_LENGTH = 13; //to be tuned
+    public static double BASE_WIDTH = 34, BASE_LENGTH = 33.5; //to be tuned
     private final double drivetrain_radius = Math.hypot(BASE_WIDTH, BASE_LENGTH) / 2;
     private final double ANGULAR_VELOCITY_X = BASE_LENGTH / drivetrain_radius;
     private final double ANGULAR_VELOCITY_Y = BASE_WIDTH / drivetrain_radius;
 
     protected boolean locked = false;
-    private LockedWheelPositions lockedStatus = LockedWheelPositions.DIAMOND;
 
     private SwerveState lastState = new SwerveState()
             .add(0, 0)
@@ -66,12 +69,13 @@ public abstract class SwerveKinematics implements Enums.Swerve {
     }
 
 
+    @SuppressLint("SuspiciousIndentation")
     private SwerveState normalizeSpeeds(SwerveState state) {
         double max = 0;
         for (SwerveState eachState : state.getList()) { max = Math.max(eachState.speed, max); }
 
         if (max > 1)
-        for (SwerveState eachState : state.getList()) { eachState.speed /= max; }
+            for (SwerveState eachState : state.getList()) { eachState.speed /= max; }
 
         return state;
     }

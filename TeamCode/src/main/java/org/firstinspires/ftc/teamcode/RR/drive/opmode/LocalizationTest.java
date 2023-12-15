@@ -1,9 +1,15 @@
 package org.firstinspires.ftc.teamcode.RR.drive.opmode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.checkerframework.checker.units.qual.C;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Generals.Enums;
+import org.firstinspires.ftc.teamcode.Localizer.IMU.Threaded_IMU;
 import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
 
 /**
@@ -16,22 +22,28 @@ import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
 @TeleOp(name = "RR_Localization",group = "RR")
 public class LocalizationTest extends LinearOpMode {
     CleverSwerve swerve;
+    private Telemetry dashboardTelemetry;
+    private Threaded_IMU imu;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        swerve = swerve.getInstance(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.AUTONOMUS);
+        swerve = new CleverSwerve(this, CleverSwerve.Localizers.ROADRUNNER, Enums.OpMode.TELE_OP);
+        dashboardTelemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        imu = new Threaded_IMU(this);
 
         waitForStart();
 
         while (!isStopRequested()) {
-            swerve.drive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+            swerve.drive(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
+            swerve.read();
 
-            telemetry.addLine("             POSE"                                       );
-            telemetry.addData("x:        ", swerve.getPoseEstimate().x                      );
-            telemetry.addData("y:        ", swerve.getPoseEstimate().y                      );
-            telemetry.addData("heading:  ", Math.toDegrees(swerve.getPoseEstimate().heading));
+            dashboardTelemetry.addLine("             POSE"                                       );
+            dashboardTelemetry.addData("x:        ", swerve.getPoseEstimate().x                      );
+            dashboardTelemetry.addData("y:        ", swerve.getPoseEstimate().y                      );
+            dashboardTelemetry.addData("heading:  ", Math.toDegrees(swerve.getPoseEstimate().heading));
+            dashboardTelemetry.addData("Angle: ", imu.getAngle(AngleUnit.DEGREES));
 
-            telemetry.update();
+            dashboardTelemetry.update();
         }
     }
 }

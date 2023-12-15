@@ -1,17 +1,20 @@
 package org.firstinspires.ftc.teamcode.Systems;
 
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SystemConstants.autoGetBackToIntermediary;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SystemConstants.autoGrabPixelsAfterCollectingTwoPixels;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SystemConstants.autoResetSystem;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SystemConstants.autoSpitAfterCollectingTwoPixels;
 import static org.firstinspires.ftc.teamcode.Systems.Subsystems.Scoring.Outtake.safeRotationThreshold;
 import static org.firstinspires.ftc.teamcode.WayFinder.Math.MathFormulas.sign;
 import static org.firstinspires.ftc.teamcode.WayFinder.Math.MathFormulas.toPower;
 
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Generals.Enums;
-import org.firstinspires.ftc.teamcode.Generals.SystemFunctionalities;
+import org.firstinspires.ftc.teamcode.Generals.Constants.SystemConstants;
 import org.firstinspires.ftc.teamcode.Systems.Subsystems.Scoring.Intake;
 import org.firstinspires.ftc.teamcode.Systems.Subsystems.Scoring.Outtake;
 import org.firstinspires.ftc.teamcode.Util.SensorEx.CompareRGB;
@@ -19,8 +22,7 @@ import org.firstinspires.ftc.teamcode.Util.SensorEx.CompareRGB;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enums {
-    public static ScoringSystem instance = null;
+public class ScoringSystem implements Enums.Scoring, Enums {
     public static double numberOfInstanceCalls = 0;
     public static double numberOfAutonomusInstanceCalls = 0, numberOfTeleOpInstanceCalls = 0;
     public static OpMode opModeType = null;
@@ -28,14 +30,16 @@ public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enum
     private Intake intake;
     private Outtake outtake;
 
-    private RevColorSensorV3 transfer_pixel1, transfer_pixel2;
-    private ColorSensor ramp_sensor;
+    private double transferFirstSensorDistance, transferSecondSensorDistance;
+    private double r, g, b; //deprecated. Not working to detect pixel color
 
-    private static LinearOpMode opMode;
+    private RevColorSensorV3 transfer_pixel1, transfer_pixel2;
+
+    private LinearOpMode opMode;
 
     /**Time values in milliseconds*/
-    private final long timeForSpitting = 350;
-    public final long timeForPixelsToBeScored = 900;
+    private final long timeForSpitting = 550;
+    public final long timeForPixelsToBeScored = 3000;
     private final int timeToOpenGripper = 350;
     private final int timeToRotateSafelyWhenComingDown = 500;
     private final int timeToWaitForLiftBeforeRotating = 200;
@@ -92,10 +96,11 @@ public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enum
      */
 
 
-    public static ScoringSystem getInstance(LinearOpMode opModE, OpMode type) {
-        instance = new ScoringSystem(opModE);
+    public ScoringSystem getInstance() { return this; }
 
-        opMode = opModE;
+    public ScoringSystem(LinearOpMode opMode, OpMode type)
+    {
+        this.opMode = opMode;
         opModeType = type;
 
         switch (opModeType) {
@@ -108,21 +113,13 @@ public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enum
         }
         numberOfInstanceCalls++;
 
-        return instance;
-    }
-
-    private ScoringSystem(LinearOpMode opMode)
-    {
-        this.opMode = opMode;
-
         intake = new Intake(opMode);
         outtake = new Outtake(opMode);
 
         transfer_pixel1 = opMode.hardwareMap.get(RevColorSensorV3.class, "pixel1");
         transfer_pixel2 = opMode.hardwareMap.get(RevColorSensorV3.class, "pixel2");
-        ramp_sensor = opMode.hardwareMap.get(ColorSensor.class, "ramp_sensor");
 
-        initializeColorRecognition();
+        //initializeColorRecognition();
     }
 
 
@@ -191,17 +188,17 @@ public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enum
 
 
     private Pixels findFirstPixel() {
-        if (pixelRecognitions.size() == 0)
+        //if (pixelRecognitions.size() == 0)
             return Pixels.UNIDENTIFIED;
 
-        return pixelRecognitions.get(0);
+        //return pixelRecognitions.get(0);
     }
 
     private Pixels findSecondPixel() {
-        if (pixelRecognitions.size() == 0)
+        //if (pixelRecognitions.size() == 0)
             return Pixels.UNIDENTIFIED;
 
-        if (pixelRecognitions.size() == 1) {
+        /*if (pixelRecognitions.size() == 1) {
             if (pixelsInPossession.get(0) == Pixels.UNIDENTIFIED) { return pixelsInPossession.get(0); }
             else { return Pixels.UNIDENTIFIED; }
         }
@@ -214,7 +211,7 @@ public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enum
             }
         }
 
-        return firstRecognition;
+        return firstRecognition;*/
     }
 
 
@@ -243,7 +240,7 @@ public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enum
 
 
     private void updateScoringSystem() {
-        intake.update();
+        //intake.update();
         outtake.update();
     }
 
@@ -272,9 +269,10 @@ public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enum
         isFirstPixelInTransfer = transferFirstSensorDistance < distanceCheckingIfPixelIsInTransfer;
         isSecondPixelInTransfer = transferSecondSensorDistance < distanceCheckingIfPixelIsInTransfer;
 
-        Pixels recognition = recognizeColor();
+        //deprecated. Just slowing the code at this point
+        /* recognition = recognizeColor();
         if (recognition != Pixels.NONE)
-            pixelRecognitions.add(recognition);
+            pixelRecognitions.add(recognition);*/
 
         if (isFirstPixelInTransfer && pixelsInPossession.size() == 0) { pixelsInPossession.add(findFirstPixel()); }
         else if (isFirstPixelInTransfer && pixelsInPossession.size() == 1 && hasGrabbedOnePixel) { pixelsInPossession.add(findSecondPixel()); }
@@ -299,6 +297,9 @@ public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enum
     }
 
     protected void updateState() {
+        if (intake.isIntakeConstrained())
+            spitForTimeThen(300, AfterSpitting.STOP);
+        
         switch (numberOfCollectedPixels) {
             case ZERO: {
                 setManualIntakeEnabled(true);
@@ -360,12 +361,15 @@ public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enum
     public void resetLiftEncoders() { outtake.resetEncoders();}
 
     public void resetSystem() {
-        setState(LiftStates.LOW);
-        setState(OuttakeRotationStates.COLLECT);
-        sleep(700, Update.OUTTAKE);
+        if (autoResetSystem) {
+            setTarget(safeRotationThreshold);
+            setState(OuttakeRotationStates.COLLECT);
+            sleep(700, Update.OUTTAKE);
 
-        while (!opMode.isStarted() && !opMode.isStopRequested() && !isLiftConstrained()) { resetLift(); outtake.update(); }
-        resetLiftEncoders();
+            while (!opMode.isStarted() && !opMode.isStopRequested() && !isLiftConstrained()) { resetLift(); }
+
+            resetLiftEncoders();
+        }
     }
 
     public void resetNumberOfCollectedPixelsToZero() {
@@ -389,7 +393,8 @@ public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enum
         temp.startTime();
 
         switch (type) {
-            case INTAKE: while (temp.milliseconds() <= milliseconds) { intake.update(); intake.read(); } break;
+            case INTAKE: while (temp.milliseconds() <= milliseconds) { //intake.update();
+                intake.read(); } break;
             case OUTTAKE: while (temp.milliseconds() <= milliseconds) { outtake.update(); outtake.read(); } break;
             case ALL: while (temp.milliseconds() <= milliseconds) { update(); read(); } break;
             case SCORING_SYSTEM: while (temp.milliseconds() <= milliseconds) { updateScoringSystem(); intake.read(); outtake.read(); } break;
@@ -425,6 +430,10 @@ public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enum
 
 
     /**Debugging*/
+    public  double getLeftOuttakeEncoderPosition() { return outtake.getLeftPosition(); }
+
+    public  double getRightOuttakeEncoderPosition() { return outtake.getRightPosition(); }
+
     public OpMode getOpModeType() { return opModeType; }
 
     public static double getNumberOfInstanceCalls() { return numberOfInstanceCalls; }
@@ -596,12 +605,29 @@ public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enum
                 sleep(timeForPixelsToBeScored, Update.OUTTAKE);
 
                 setState(OuttakeRotationStates.COLLECT);
-                sleep(timeToWaitForLiftBeforeRotating, Update.OUTTAKE);
 
-                getTo(Position.INTERMEDIARY);
+                if (autoGetBackToIntermediary) {
+                    sleep(timeToWaitForLiftBeforeRotating, Update.OUTTAKE);
+                    getTo(Position.INTERMEDIARY);
+                }
+
                 removePixelsUntilRemain((hasGrabbedOnePixel && numberOfCollectedPixels == StoredPixels.TWO) ? 1 : 0);
 
+                setHasGrabbedOnePixel(false);
+                setHasGrabbedTwoPixels(false);
+
             } break;
+
+            case COLLECT_GRAB: {
+                if (getNumberOfStoredPixels() == StoredPixels.ONE) { setHasGrabbedOnePixel(true); }
+                else { setHasGrabbedOnePixel(false); }
+
+                if (getNumberOfStoredPixels() == StoredPixels.TWO) { setHasGrabbedTwoPixels(true);  }
+                else { setHasGrabbedTwoPixels(false); }
+
+                getTo(Position.COLLECT);
+                pixels(PixelActions.GRAB);
+            }
         }
     }
 
@@ -653,7 +679,7 @@ public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enum
 
         if (action == AfterSpitting.STOP) { stopIntake(); }
             else if (action == AfterSpitting.GET_BACK) { startIntake(armState); }
-        intake.update();
+        //intake.update();
     }
 
 
@@ -664,18 +690,12 @@ public class ScoringSystem implements SystemFunctionalities, Enums.Scoring, Enum
      */
 
 
-    private double transferFirstSensorDistance, transferSecondSensorDistance;
-    private double r, g, b;
-
-    synchronized private void readSensors() {
+    private void readSensors() {
         transferFirstSensorDistance = transfer_pixel1.getDistance(DistanceUnit.CM);
         transferSecondSensorDistance = transfer_pixel2.getDistance(DistanceUnit.CM);
-        r = ramp_sensor.red();
-        g = ramp_sensor.green();
-        b = ramp_sensor.blue();
     }
 
-    synchronized public void read() {
+    public void read() {
         intake.read();
         outtake.read();
         readSensors();

@@ -11,12 +11,12 @@ import org.firstinspires.ftc.teamcode.WayFinder.Localization.Pose;
 
 public class CustomSwerveLocalizer implements Localizer {
     public static double TICKS_PER_REV = 8192;
-    public static double WHEEL_RADIUS = 0; //cm
+    public static double WHEEL_RADIUS = 4; //cm
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
 
-    public double l = 0; //also cm
-    public double r = 0;
-    public double b = 0;
+    public double l = -14.25; //also cm
+    public double r = 7.25;
+    public double b = -24;
 
     private Pose currentPose, previousPose, velocityPose;
 
@@ -43,9 +43,9 @@ public class CustomSwerveLocalizer implements Localizer {
 
         localizer = new Dead3WheelLocalizer(l, r, b);
 
-        leftEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "FL"));
-        rightEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "FR"));
-        backEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "BR"));
+        leftEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "FR"));
+        rightEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "FL"));
+        backEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "BL"));
 
         //TODO: reverse any encoders using Encoder.setDirection(Encoder.Direction.REVERSE)
         //TODO: select the right swerve modules for this
@@ -54,9 +54,11 @@ public class CustomSwerveLocalizer implements Localizer {
     @Override
     public void update() {
 
-        Pose deltaPose = localizer.getDeltaPoseEstimate(delta_L, delta_R, delta_B, currentPose.heading);
-        currentPose = new Pose(currentPose.getPoint().sum(deltaPose.getPoint()), deltaPose.heading);
+        Pose lastPose = currentPose;
+        currentPose = localizer.getDeltaPoseEstimate(delta_L, delta_R, delta_B, currentPose);
+        //currentPose = new Pose(currentPose.sum(deltaPose.getPoint()), deltaPose.heading);
 
+        Pose deltaPose = currentPose.subtract(lastPose);
         velocityPose = deltaPose.divideBy(loopTime.seconds());
     }
 
@@ -78,6 +80,12 @@ public class CustomSwerveLocalizer implements Localizer {
             default: { return 0; }
         }
     }
+
+    public double getLeftEncodeValue() { return currentL; }
+
+    public double getRightEncoderValue() { return currentR; }
+
+    public double getBackEncoderValue() { return  currentB; }
 
     /**call this every loop*/
     public void read() {

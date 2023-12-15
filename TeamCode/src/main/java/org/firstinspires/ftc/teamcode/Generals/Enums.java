@@ -10,7 +10,14 @@ public interface Enums {
     }
 
     enum Pipelines{
-        DETECTING_PIXELS_ON_BACKDROP
+        DETECTING_PIXELS_ON_BACKDROP,
+        DETECTING_PROP
+    }
+
+    enum Randomization{
+        LEFT,
+        CENTER,
+        RIGHT
     }
 
     enum OpMode{
@@ -38,7 +45,8 @@ public interface Enums {
 
         enum PixelActions{
             GRAB,
-            SCORE
+            SCORE,
+            COLLECT_GRAB;
         }
 
         enum IntakeMotorStates{
@@ -107,15 +115,9 @@ public interface Enums {
 
 
     interface Other {
-        enum OtherTimer{
-            USING_ENDGAME_TIMER,
-            NOT_USING_ENDGAME_TIMER
-        }
-
-        enum LauncherPositions{
+        enum DronePosition {
             LOAD,
-            FIRE,
-            PENDING
+            FIRE
         }
 
         enum PullUpPositions{
@@ -138,6 +140,11 @@ public interface Enums {
             ROADRUNNER
         }
 
+        enum ModuleOffset {
+            POSITION,
+            ANGLE
+        }
+
         enum state{
             SPEED,
             ANGLE
@@ -152,6 +159,12 @@ public interface Enums {
         enum Component {
             X,
             Y
+        }
+    }
+
+    interface Pathing{
+        enum Polynomial{
+            UNDEFINED, constant, linear, quadratic, cubic, quartic, quintic, MULTIPLE
         }
     }
 }

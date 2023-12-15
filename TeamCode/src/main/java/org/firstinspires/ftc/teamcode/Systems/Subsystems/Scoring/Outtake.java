@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.Systems.Subsystems.Scoring;
 
-import static org.firstinspires.ftc.teamcode.Util.MotionHardware.Init.isConstrained;
-
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -27,6 +25,9 @@ public class Outtake implements Enums.Scoring {
     private final Servo gripper;
     private final Servo rotation;
 
+    private int leftEncoderPosition, rightEncoderPosition;
+    private double leftAmperage, rightAmperage;
+
     private LinearOpMode opMode;
 
     private OuttakeGripperStates gripperStates = OuttakeGripperStates.CLOSED;
@@ -34,7 +35,7 @@ public class Outtake implements Enums.Scoring {
 
     public static final double ticks_in_degree = 36 / 14;
     private final double open = 0.0, closed = 0.2;
-    private final double collect = 0.115, score = 0.8;
+    private final double collect = 0.32, score = 1;
     private final int liftCOLLECT = 0, liftINTERMEDIARY = 95, liftLOW = 300, liftMID = 530, liftHIGH = 875;
 
 
@@ -103,7 +104,7 @@ public class Outtake implements Enums.Scoring {
     }
 
     public void resetLift(){
-        if ((isConstrained(leftMotor) || isConstrained(rightMotor)) && needsToReset) {
+        if (isLiftConstrained() && needsToReset) {
             resetEncoders();
             needsToReset = false;
         }
@@ -111,6 +112,7 @@ public class Outtake implements Enums.Scoring {
         if (needsToReset) {
             target = RESET;
             updateLift();
+            read();
         }
     }
 
@@ -132,7 +134,11 @@ public class Outtake implements Enums.Scoring {
 
     public int getTarget() { return target; }
 
-    public int getCurrentPositionAverage() { return (leftEncoderPosition + rightEncoderPosition) / 2; }
+    public int getCurrentPositionAverage() { return (int)(getLeftPosition() + getRightPosition()) / 2; }
+
+    public double getLeftPosition() { return leftMotor.getCurrentPosition(); }
+
+    public double getRightPosition() { return  rightMotor.getCurrentPosition(); }
 
 
     /*
@@ -158,9 +164,9 @@ public class Outtake implements Enums.Scoring {
     */
 
 
-    public void setState(OuttakeGripperStates state) { gripperStates = state; }
+    public void setState(OuttakeGripperStates state) { gripperStates = state; updateGripper(); }
 
-    public void setState(OuttakeRotationStates state) { rotationStates = state; }
+    public void setState(OuttakeRotationStates state) { rotationStates = state; updateRotation(); }
 
     public void setMaxManualTarget(LiftStates target) {
         switch (target) {
@@ -192,8 +198,8 @@ public class Outtake implements Enums.Scoring {
             default: {}
 
 
-            motionProfile = new TrapezoidalMotionProfile(getCurrentPositionAverage(), target, new ProfileConstrains(MAX_VEL, MAX_ACC));
-            profileTimer.reset();
+            //motionProfile = new TrapezoidalMotionProfile(getCurrentPositionAverage(), target, new ProfileConstrains(MAX_VEL, MAX_ACC));
+            //profileTimer.reset();
 
         }
 
@@ -232,8 +238,8 @@ public class Outtake implements Enums.Scoring {
 
     public void update() {
         updateLift();
-        updateGripper();
-        updateRotation();
+        //updateGripper();
+        //updateRotation();
     }
 
 
@@ -248,13 +254,13 @@ public class Outtake implements Enums.Scoring {
     private void pid(DcMotorEx motor, int currentPosition, int target) {
         double power = controller.calculate(currentPosition, target);
 
-        if (motionProfile != null)
+        /*if (motionProfile != null)
             if (motor.isBusy()) {
                 MotionState currentState = motionProfile.calculate(profileTimer.time());
 
                 double profilePower = profileVelocityToMotorInput(currentState);
                 power = Math.min(power, profilePower);
-            }
+            }*/
 
         motor.setPower(power);
     }
@@ -288,6 +294,7 @@ public class Outtake implements Enums.Scoring {
     */
 
 
+    @Deprecated
     private double profileVelocityToMotorInput(MotionState state) {
         double velocity = state.get(MotionState.val.VELOCITY);
         double max_velocity = motionProfile.getConstrains().MAX_VELOCITY;
@@ -304,10 +311,7 @@ public class Outtake implements Enums.Scoring {
     */
 
 
-    private int leftEncoderPosition, rightEncoderPosition;
-    private double leftAmperage, rightAmperage;
-
-    synchronized public void read() {
+    public void read() {
         leftEncoderPosition = leftMotor.getCurrentPosition();
         rightEncoderPosition = rightMotor.getCurrentPosition();
         leftAmperage = leftMotor.getCurrent(CurrentUnit.AMPS);
@@ -316,6 +320,7 @@ public class Outtake implements Enums.Scoring {
 
 
     public double getMAX() { return MAX; }
+
     public double getMIN() { return MIN; }
 
 }

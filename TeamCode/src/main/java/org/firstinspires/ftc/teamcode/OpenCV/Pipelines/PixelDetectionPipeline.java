@@ -23,7 +23,6 @@ public class PixelDetectionPipeline extends OpenCvPipeline {
     private Scalar upperPurple = new Scalar(171, 255, 255);
 
     private Scalar lowerWhite = new Scalar(75, 0, 99);
-
     private Scalar upperWhite = new Scalar(179, 62, 255);
 
     @Override

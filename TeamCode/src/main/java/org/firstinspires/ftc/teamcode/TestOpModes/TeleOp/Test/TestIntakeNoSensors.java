@@ -15,7 +15,7 @@ public class TestIntakeNoSensors extends LinearOpMode
     ScoringSystem intake;
     @Override
     public void runOpMode() throws InterruptedException {
-        intake = intake.getInstance(this, OpMode.TELE_OP);
+        intake = new ScoringSystem(this, OpMode.TELE_OP);
         GamepadEx g1 = new GamepadEx(gamepad1);
         GamepadEx g2 = new GamepadEx(gamepad2);
 

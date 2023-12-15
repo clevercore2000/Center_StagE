@@ -7,15 +7,21 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.OpenCV.Pipelines.PixelDetectionPipeline;
 import org.firstinspires.ftc.teamcode.Generals.Enums;
+import org.firstinspires.ftc.teamcode.OpenCV.Pipelines.PropDetectionPipeline;
+import org.opencv.core.Point;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvPipeline;
+
+import javax.annotation.Nullable;
 
 public class Camera {
 
     private OpenCvCamera camera;
     private String cameraConfigurationName = "CleverCamera";
     private OpenCvCameraRotation cameraOrientation = OpenCvCameraRotation.UPRIGHT;
+    private OpenCvPipeline currentPipeline;
 
     private int HEIGHT = 240, WIDTH = 320;
     private boolean isOpened = false;
@@ -42,9 +48,13 @@ public class Camera {
         }
 
         switch (desiredPipeline) {
-            case DETECTING_PIXELS_ON_BACKDROP: { camera.setPipeline(new PixelDetectionPipeline()); }
+            case DETECTING_PIXELS_ON_BACKDROP: { currentPipeline = new PixelDetectionPipeline(); }
+            case DETECTING_PROP: { currentPipeline = new PropDetectionPipeline(); }
             default: {}
         }
+
+        if (currentPipeline != null)
+            camera.setPipeline(currentPipeline);
 
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
@@ -62,6 +72,8 @@ public class Camera {
         });
     }
 
+    public OpenCvPipeline getPipeline() { return currentPipeline; }
+
     public boolean isOpened() { return isOpened; }
 
     public void setCameraParameters(int width, int height) {
@@ -76,6 +88,8 @@ public class Camera {
         setCameraParameters(cameraOrientation);
     }
 
+    public void close() { camera.closeCameraDeviceAsync(null); }
+
     protected String getCameraName() { return cameraConfigurationName; }
 
     public int getWidth() { return WIDTH; }
@@ -83,5 +97,23 @@ public class Camera {
     public int getHeight() { return HEIGHT; }
 
     public OpenCvCameraRotation getOrientation() { return cameraOrientation; }
+
+    @Nullable
+    public Enums.Randomization getRandomization() {
+        if (!(currentPipeline instanceof PropDetectionPipeline))
+            return null;
+
+        Point center = ((PropDetectionPipeline) currentPipeline).getCenter();
+
+        if (center != null) {
+
+        if (center.x <= WIDTH / 3) return Enums.Randomization.LEFT;
+
+        if (center.x <= 2 * WIDTH / 3) return Enums.Randomization.CENTER;
+
+        return Enums.Randomization.RIGHT;
+
+        } else return null;
+    }
 
 }

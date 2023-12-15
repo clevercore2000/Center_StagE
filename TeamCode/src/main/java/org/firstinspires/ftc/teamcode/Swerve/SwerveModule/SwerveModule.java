@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.Swerve.SwerveModule;
 
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeRadians;
+import static org.firstinspires.ftc.teamcode.Generals.Constants.SwerveConstants.feelingRisky;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -10,15 +12,19 @@ import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
+import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.R;
 import org.firstinspires.ftc.teamcode.Util.MotionHardware.Init;
 
 public class SwerveModule {
     private DcMotorEx speed;
     private Servo angle;
 
-    private final double maxServoRangeInRadians = 300 * Math.PI / 180;
+    private final double maxServoRangeInRadians = Math.toRadians(1800);
     private final double angleGearRatio = 2 / 1; //output / input (teeth)
+    private double offsetInRadians = 0;
 
     private final double PI = Math.PI;
 
@@ -35,6 +41,7 @@ public class SwerveModule {
 
     private double currentVelocity = 0.0;
     private double currentAngle = 0.0;
+    private double previousAngle = 0.0;
     private double currentAcceleration = 0.0;
 
 
@@ -72,48 +79,56 @@ public class SwerveModule {
         initialize();
     }
 
+    public void setOffset(double offset) { offsetInRadians = offset; }
+
+    public void fromServoPowerToAngle(double offset) {
+        setOffset(offset * maxServoRangeInRadians);
+    }
+
     private void setSpeed(double power) {
         currentVelocity = (power > 0.02) ? (clipSpeed(power * flipModifier())) : 0;
         speed.setPower(currentVelocity);
     }
 
     private void setAngle(double a) {
-        currentAngle = clipAngle(transformAngleIntoMotorInput(effectiveAngle(a))) ;
+        previousAngle = currentAngle;
+        currentAngle = clipAngle(transformAngleIntoServoInput(effectiveAngle(a))) ;
         angle.setPosition(currentAngle);
 
     }
 
     /**Finding shortest way to the desired position */
     private double effectiveAngle(double a) {
+        /*if (feelingRisky) {
+            double normalizedPreviousAngle = normalizeRadians(previousAngle);
+            double error = normalizeRadians(a - normalizedPreviousAngle);
 
-        if (MOTOR_FLIPPING && (a < 0 || a == PI)) {
-            a = normalizeRadians((a == PI) ? a : a + PI) ;
-            wheelFlipped = true;
-        } else wheelFlipped = false;
+            if (MOTOR_FLIPPING && Math.abs(error) > Math.PI / 2) {
+                previousAngle += Math.signum(error) * normalizeRadians(a - Math.PI);
+                wheelFlipped = true;
+            } else {
+                previousAngle += Math.signum(error) * normalizeRadians(a);
+                wheelFlipped = false;
+            }
 
-        return a;
+            return previousAngle;
+
+        } else {*/
+            if (MOTOR_FLIPPING && (a < 0 || a == PI)) {
+                a = normalizeRadians((a == PI) ? a : a + PI);
+                wheelFlipped = true;
+            } else wheelFlipped = false;
+
+            return a;
+        //}
+
     }
 
-    private double transformAngleIntoMotorInput(double a) { return a / maxServoRangeInRadians * angleGearRatio; }
+    private double transformAngleIntoServoInput(double a) { return a / maxServoRangeInRadians * angleGearRatio; }
 
-    private double clipSpeed(double value) {
-        if (value > 1)
-            return 1;
-        if (value < -1)
-            return -1;
+    private double clipSpeed(double value) { return Range.clip(value, -1, 1); }
 
-        return value;
-    }
-
-
-    private double clipAngle(double value) {
-        if (value > 1)
-            return  1;
-        if (value < 0)
-            return 0;
-
-        return  value;
-    }
+    private double clipAngle(double value) { return Range.clip(value, 0, 1); }
 
     public void run(double s, double a) {
         setAngle(a);
@@ -132,13 +147,13 @@ public class SwerveModule {
 
     public double getActualCurrentVelocity() { return encoderTicksToCM(speed.getVelocity()); }
 
-    public double getActualCurrentAngle() { return currentAngle; }
+    public double getActualCurrentAngle() { return previousAngle; }
 
     public double getVelocityError() { return Math.abs(getActualCurrentVelocity() - currentVelocity); }
 
-    public double getAngleError() { return Math.abs(getActualCurrentAngle() - currentAngle); }
+    public double getAngleError() { return currentAngle - previousAngle; }
 
-    public boolean isConstrained() { return Init.isConstrained(speed); }
+    public boolean isConstrained() { return Init.isConstrained(speed, 4); }
 
     private int flipModifier() { return wheelFlipped ? -1 : 1; }
 

@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.OpModes.TeleOp;
 
-import static org.firstinspires.ftc.teamcode.Generals.Constants.SystemConstants.useManualEnable;
+import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SystemConstants.useManualEnable;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -9,19 +9,18 @@ import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.Generals.Enums;
+import org.firstinspires.ftc.teamcode.hardware.Generals.Enums;
 import org.firstinspires.ftc.teamcode.OpModes.CleverMode;
-import org.firstinspires.ftc.teamcode.Systems.Robot.CleverBot;
-import org.firstinspires.ftc.teamcode.Systems.Robot.CleverData;
+import org.firstinspires.ftc.teamcode.hardware.Robot.CleverBot;
+import org.firstinspires.ftc.teamcode.hardware.Robot.CleverData;
 
 @TeleOp(name = "💋", group = "DRĂCOS")
 public class TeleOpV2 extends CleverMode {
     private CleverBot robot;
 
-    private GamepadEx g1, g2;
     private Telemetry dashboardTelemetry;
 
-    private Thread readingThread, liftThread, swerveThread;
+    private Thread readingThread, liftThread, swerveThread, telemetryThread;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -29,31 +28,28 @@ public class TeleOpV2 extends CleverMode {
 
         WaitForStart();
 
-        WhenStarted();
+        //WhenStarted();
 
         while (opModeIsActive()) {
-            g2.readButtons();
+            /*robot.getStartingLoopTime();
 
-            /**Use other subsystems only when endgame starts*/
-            if (g2.wasJustPressed(GamepadKeys.Button.LEFT_STICK_BUTTON)) { robot.other.setState(Enums.Other.PullUpPositions.UP); }
+            robot.read();
+            robot.updateAll();
+            robot.clearBulkCache();*/
 
-            if (g2.wasJustPressed(GamepadKeys.Button.RIGHT_STICK_BUTTON)) { robot.other.setState(Enums.Other.PullUpPositions.HANGING); }
-
-            if (g2.wasJustPressed(GamepadKeys.Button.START)) { robot.other.setState(Enums.Other.DronePosition.FIRE); }
+            if (robot.g2.wasJustPressed(GamepadKeys.Button.LEFT_STICK_BUTTON)) { robot.other.setState(Enums.Other.DronePosition.FIRE); }
 
 
 
             /**Access to intake actions is necessary*/
             if (robot.scoring.isManualIntakeEnabled() || !useManualEnable) {
-                if (g2.isDown(GamepadKeys.Button.RIGHT_BUMPER)) {
+                if (robot.g2.isDown(GamepadKeys.Button.RIGHT_BUMPER)) {
 
-                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) { robot.scoring.startIntake(Enums.Scoring.IntakeArmStates.DOWN); }
+                    if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) { robot.scoring.startIntake(Enums.Scoring.IntakeArmStates.DOWN); }
 
-                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) { robot.scoring.startIntake(Enums.Scoring.IntakeArmStates.STACK_UP); }
+                    if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) { robot.scoring.startIntake(Enums.Scoring.IntakeArmStates.STACK_UP); }
 
-                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) { robot.scoring.startIntake(Enums.Scoring.IntakeArmStates.STACK_DOWN); }
-
-                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) { robot.scoring.stopIntake(); }
+                    if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) { robot.scoring.startIntake(Enums.Scoring.IntakeArmStates.STACK_DOWN); }
 
 
                 }
@@ -61,64 +57,71 @@ public class TeleOpV2 extends CleverMode {
             }
 
             /**Manual SPIT*/
-            if (g2.isDown(GamepadKeys.Button.RIGHT_BUMPER)) {
-                if (g2.wasJustPressed(GamepadKeys.Button.A)) { robot.scoring.spitIntake(); }
+            if (robot.g2.isDown(GamepadKeys.Button.RIGHT_BUMPER)) {
+                if (robot.g2.wasJustPressed(GamepadKeys.Button.A)) { robot.scoring.spitIntake(); }
             }
 
+
+
             /**Manual lowering*/
-            if (g2.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
-                if (g2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) { robot.scoring.getTo(Enums.Scoring.Position.INTERMEDIARY); }
+            if (robot.g2.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
+                if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) { robot.scoring.getTo(Enums.Scoring.Position.INTERMEDIARY); }
             }
 
             /**Access to outtake actions is necessary*/
             if (robot.scoring.isManualOuttakeEnabled() || !useManualEnable) {
 
-                if (g2.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
+                if (robot.g2.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
 
-                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) { robot.scoring.score(Enums.Scoring.Score.HIGH); }
+                        if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) { robot.scoring.score(Enums.Scoring.Score.HIGH); }
 
-                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) { robot.scoring.score(Enums.Scoring.Score.MID); }
+                        if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) { robot.scoring.score(Enums.Scoring.Score.MID); }
 
-                    if (g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) { robot.scoring.score(Enums.Scoring.Score.LOW); }
+                        if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) { robot.scoring.score(Enums.Scoring.Score.LOW); }
+
 
                     /**Grab pixels*/
-                    if ((g2.wasJustPressed(GamepadKeys.Button.A))) { robot.scoring.pixels(Enums.Scoring.PixelActions.COLLECT_GRAB); }
+                    if ((robot.g2.wasJustPressed(GamepadKeys.Button.A))) { robot.scoring.pixels(Enums.Scoring.PixelActions.COLLECT_GRAB); }
 
                 }
 
-                /**SCORE PIXELS BABYYYY*/
-                if (g2.wasJustPressed(GamepadKeys.Button.B)) { robot.scoring.pixels(Enums.Scoring.PixelActions.SCORE); }
-
+                    /**SCORE PIXELS BABYYYY*/
+                    if (robot.g2.wasJustPressed(GamepadKeys.Button.B)) { robot.scoring.pixels(Enums.Scoring.PixelActions.SCORE); }
             }
 
-            robot.scoring.manualControlLift(g2.getLeftY());
-            robot.updatePullUp();
+            robot.scoring.manualControlLift(robot.g2.getLeftY());
 
-            robot.addTelemetry("Angle: ", robot.getRobotPosition().heading);
-            robot.updateTelemetry();
+            //robot.getEndingLoopTime();
+
+            //robot.debuggingTelemetry();
+            //robot.updateTelemetry();
+
         }
 
     }
 
     protected void Init() {
-        g1 = new GamepadEx(gamepad1);
-        g2 = new GamepadEx(gamepad2);
         dashboardTelemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         robot = new CleverBot()
                 .addConstrains(new CleverData()
                         .add(Enums.OpMode.TELE_OP)
                         .add(Enums.Swerve.Localizers.IMU)
-                        .setLockedWheelStyle(Enums.Swerve.LockedWheelPositions.X_SHAPE)
+                        .addSwerveSensitivity(GamepadKeys.Trigger.LEFT_TRIGGER)
+                        .setLockedWheelStyle(Enums.Swerve.LockedWheelPositions.DEFAULT)
                         .setAutoReset(false)
                         .setAutoGetToIntermediary(false)
                         .setFieldCentric(false)
-                        .allowOtherUsageBeforeEndgame(false)
+                        .allowOtherUsageBeforeEndgame(true)
                         .getLoopTime(true)
                         .setUsingAprilTag(false)
-                        .setUsingOpenCv(false))
+                        .setUsingOpenCv(false)
+                        .setMultithreading(true))
                 .addTelemetry(dashboardTelemetry)
+                .addGamepads(Enums.Gamepads.BOTH)
                 .construct(this);
+
+        robot.scoring.resetNumberOfCollectedPixelsToZero();
 
         InitializeThreads();
 
@@ -131,34 +134,68 @@ public class TeleOpV2 extends CleverMode {
         readingThread = new Thread(() -> {
             while (!isStopRequested()) {
                 robot.read();
-                robot.clearBulkCache();
+                robot.updateAll();
+                //robot.updateLift();
+                //robot.clearBulkCache();
             }
         });
 
         liftThread = new Thread(() -> {
             while (!isStopRequested()) {
+                robot.getStartingLoopTime();
+
+                robot.readLift();
                 robot.updateLift();
+                //robot.clearBulkCache();
+
+                robot.getEndingLoopTime();
+
+                robot.updateTelemetry();
             }
         });
 
-        swerveThread = new Thread(() -> {
+        /*swerveThread = new Thread(() -> {
             while (!isStopRequested()) {
                 while (opModeIsActive()) {
-                    g1.readButtons();
 
                     robot.drive(
-                            g1.getLeftX(),
-                            g1.getLeftY(),
-                            g1.getRightX());
-        }}});
+                            robot.g1.getLeftX(),
+                            robot.g1.getLeftY(),
+                            robot.g1.getRightX());
+        }}});*/
+
+        /*telemetryThread = new Thread(() -> {
+            boolean opModeJustStarted = false;
+            while (!isStopRequested()) {
+                robot.debuggingTelemetry();
+                robot.updateTelemetry();
+
+                if (opModeJustStarted != opModeIsActive() && opModeIsActive())
+                    robot.clearTelemetry();
+
+                opModeJustStarted = opModeIsActive();
+            }
+        });*/
+
 
         readingThread.start();
         liftThread.start();
-        swerveThread.start();
+        //swerveThread.start();
+        //telemetryThread.start();
     }
 
     protected void WhenStarted() {
         robot.startEndgameTimer();
         robot.clearTelemetry();
     }
+
+    /*@Override
+    protected void WaitForStart() {
+        while (!isStarted() && !isStopRequested()) {
+            robot.scoring.read();
+            robot.updateLift();
+            robot.clearBulkCache();
+        }
+    }*/
 }
+

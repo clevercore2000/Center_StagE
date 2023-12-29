@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-import org.firstinspires.ftc.teamcode.Util.MotionHardware.Init;
+import org.firstinspires.ftc.teamcode.hardware.Util.MotionHardware.Init;
 
 import java.util.ArrayList;
 import java.util.List;

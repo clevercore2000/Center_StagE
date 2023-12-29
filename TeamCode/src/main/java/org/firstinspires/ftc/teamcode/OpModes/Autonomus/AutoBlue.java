@@ -3,12 +3,13 @@ package org.firstinspires.ftc.teamcode.OpModes.Autonomus;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.Generals.Enums;
+import org.firstinspires.ftc.teamcode.hardware.Generals.Enums;
 import org.firstinspires.ftc.teamcode.OpModes.CleverMode;
-import org.firstinspires.ftc.teamcode.Systems.Robot.CleverBot;
-import org.firstinspires.ftc.teamcode.Systems.Robot.CleverData;
+import org.firstinspires.ftc.teamcode.hardware.Robot.CleverBot;
+import org.firstinspires.ftc.teamcode.hardware.Robot.CleverData;
 
 @Autonomous(name = "BLUE", group = "main")
 public class AutoBlue extends CleverMode {
@@ -26,9 +27,7 @@ public class AutoBlue extends CleverMode {
 
         WhenStarted();
 
-        while (opModeIsActive()) {
-
-        }
+        AutonomusTasks();
 
     }
 
@@ -84,5 +83,25 @@ public class AutoBlue extends CleverMode {
     protected void WhenStarted() {
         randomization = robot.getPropPosition();
         robot.closeCamera();
+    }
+
+    private void parkWithoutLocalization() {
+        ElapsedTime timerToGoPark = new ElapsedTime();
+        double secondsToGoPark = 1.3;
+
+        timerToGoPark.startTime();
+
+        while (timerToGoPark.seconds() <= secondsToGoPark) { robot.drive(-1, 0, 0);}
+    }
+
+    private void placePixelsOnLine()
+    {
+        ElapsedTime timer = new ElapsedTime();
+
+    }
+
+    @Override
+    protected void AutonomusTasks() {
+        parkWithoutLocalization();
     }
 }

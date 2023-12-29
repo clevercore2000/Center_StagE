@@ -1,23 +1,20 @@
 package org.firstinspires.ftc.teamcode.OpModes.TeleOp;
 
-import static org.firstinspires.ftc.teamcode.Generals.Constants.SystemConstants.useManualEnable;
+import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SystemConstants.useManualEnable;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
-import com.qualcomm.hardware.lynx.commands.core.LynxSetMotorPIDFControlLoopCoefficientsCommand;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Generals.Enums;
-import org.firstinspires.ftc.teamcode.Swerve.CleverSwerve;
-import org.firstinspires.ftc.teamcode.Systems.OtherSystem;
-import org.firstinspires.ftc.teamcode.Systems.ScoringSystem;
-import org.firstinspires.ftc.teamcode.Util.SensorEx.HubBulkRead;
+import org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SwerveConstants;
+import org.firstinspires.ftc.teamcode.hardware.Generals.Enums;
+import org.firstinspires.ftc.teamcode.hardware.Robot.Swerve.CleverSwerve;
+import org.firstinspires.ftc.teamcode.hardware.Robot.Systems.OtherSystem;
+import org.firstinspires.ftc.teamcode.hardware.Robot.Systems.ScoringSystem;
 
 @TeleOp(name = "🤯", group = "DRĂCOS")
 
@@ -53,9 +50,6 @@ public class Center_StagETeleOp extends LinearOpMode
         while(opModeIsActive()) {
 
             /**Use other subsystems only when endgame starts*/
-            if (g2.wasJustPressed(GamepadKeys.Button.LEFT_STICK_BUTTON)) { other.setState(PullUpPositions.UP); }
-
-            if (g2.wasJustPressed(GamepadKeys.Button.RIGHT_STICK_BUTTON)) { other.setState(PullUpPositions.HANGING); }
 
             if (g2.wasJustPressed(GamepadKeys.Button.START)) { other.setState(DronePosition.FIRE); }
 
@@ -150,7 +144,8 @@ public class Center_StagETeleOp extends LinearOpMode
             swerve.drive(
                     g1.getLeftX() * driveSensitivity,
                     g1.getLeftY() * driveSensitivity,
-                    g1.getRightX() * driveSensitivity);
+                    g1.getRightX() * driveSensitivity,
+                    SwerveConstants.fastConstrain);
 
             g1.readButtons();
         }}});

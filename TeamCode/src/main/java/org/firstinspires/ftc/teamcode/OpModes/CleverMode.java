@@ -10,4 +10,6 @@ public abstract class CleverMode extends LinearOpMode {
     protected abstract void WhenStarted();
 
     protected abstract void InitializeThreads();
+
+    protected void AutonomusTasks() { idle(); }
 }

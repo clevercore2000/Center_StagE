@@ -61,6 +61,7 @@ public class TeleOpV2 extends CleverMode {
                 if (robot.g2.wasJustPressed(GamepadKeys.Button.A)) { robot.scoring.spitIntake(); }
             }
 
+            if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) { robot.scoring.stopIntake(); }
 
 
             /**Manual lowering*/
@@ -150,6 +151,7 @@ public class TeleOpV2 extends CleverMode {
 
                 robot.getEndingLoopTime();
 
+                robot.debuggingTelemetry();
                 robot.updateTelemetry();
             }
         });

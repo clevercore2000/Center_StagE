@@ -39,7 +39,7 @@ public class Outtake implements Enums.Scoring {
     private OuttakeRotationStates rotationStates = OuttakeRotationStates.COLLECT;
 
     private final double open = 0.0, closed = 0.2;
-    private final double collect = 0.29, score = 1;
+    private final double collect = 1, score = 0;
     private final int liftCOLLECT = 0, liftINTERMEDIARY = 230, liftLOW = 600, liftMID = 1200, liftHIGH = 1730;
 
 
@@ -55,7 +55,7 @@ public class Outtake implements Enums.Scoring {
     private int MIN = 0, MAX = liftINTERMEDIARY, RESET = -2000;
     private int target = liftINTERMEDIARY;
     public static final int safeRotationThreshold = 540;
-    public static final int outOfTransferThreshold = 300;
+    public static final int outOfTransferThreshold = 200;
     private double accuracyThreshold = 20;
     private LiftStates liftState = LiftStates.INTERMEDIARY;
 
@@ -136,11 +136,11 @@ public class Outtake implements Enums.Scoring {
 
     public int getTarget() { return target; }
 
-    public int getCurrentPositionAverage() { return (int)(getLeftPosition() + getRightPosition()) / 2; }
+    public int getCurrentPositionAverage() { return (int)(leftEncoderPosition + rightEncoderPosition) / 2; }
 
-    public double getLeftPosition() { return leftMotor.getCurrentPosition(); }
+    public double getLeftPosition() { return leftEncoderPosition; }
 
-    public double getRightPosition() { return  rightMotor.getCurrentPosition(); }
+    public double getRightPosition() { return  rightEncoderPosition; }
 
     public OuttakeRotationStates getRotationState() { return rotationStates; }
 
@@ -153,9 +153,9 @@ public class Outtake implements Enums.Scoring {
     */
 
 
-    public boolean isLiftBusy() { return (Math.abs(getCurrentPositionAverage() - target) > accuracyThreshold) ? true : false; }
+    public boolean isLiftBusy() { return Math.abs(getCurrentPositionAverage() - target) > accuracyThreshold; }
 
-    public boolean isLiftBusy(double accuracyThreshold) { return (Math.abs(getCurrentPositionAverage() - target) > accuracyThreshold) ? true : false; }
+    public boolean isLiftBusy(double accuracyThreshold) { return Math.abs(getCurrentPositionAverage() - target) > accuracyThreshold; }
 
     public boolean isLiftConstrained() { return leftAmperage > currentThreshold  || rightAmperage > currentThreshold; }
 
@@ -248,8 +248,8 @@ public class Outtake implements Enums.Scoring {
 
 
     private void pid(DcMotorEx motor, int currentPosition, int target) {
-        double power = Range.clip(controller.calculate(currentPosition, target) * 12 / batteryVoltage,
-                -1, 1);
+        double power = controller.calculate(currentPosition, target);
+
         motor.setPower(power);
     }
 

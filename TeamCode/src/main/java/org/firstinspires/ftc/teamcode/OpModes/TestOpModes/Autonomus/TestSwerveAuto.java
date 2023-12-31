@@ -28,7 +28,7 @@ public class TestSwerveAuto extends LinearOpMode {
         swerve.setPoseEstimate(startPose);
 
         TrajectorySequence testTrajectory = swerve.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(0, 40, 90))
+                .lineToLinearHeading(new Pose2d(0, 20, 90))
                 .build();
 
         waitForStart();

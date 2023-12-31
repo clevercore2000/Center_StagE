@@ -4,6 +4,7 @@ import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SwerveC
 import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SwerveConstants.slowConstrain;
 import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SwerveConstants.usingButtonSensitivity;
 import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SwerveConstants.usingDriveSensitivity;
+import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SwerveConstants.usingVelocityToggle;
 import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SystemConstants.randomization;
 import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SystemConstants.telemetryAddLoopTime;
 import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SystemConstants.usingAprilTagCamera;
@@ -11,6 +12,7 @@ import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SystemC
 
 import android.widget.Button;
 
+import com.arcrobotics.ftclib.command.button.Trigger;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -34,7 +36,7 @@ import javax.annotation.Nullable;
 public class CleverBot {
     public ScoringSystem scoring;
     public OtherSystem other;
-    private CleverSwerve swerve;
+    public CleverSwerve swerve;
 
     public GamepadEx g1, g2;
     private boolean add_g1, add_g2;
@@ -44,6 +46,11 @@ public class CleverBot {
     private HubBulkRead core;
     private double startLoopTime, endLoopTime;
     private double secondsToNanoseconds = 1000000000;
+
+    private double speed;
+    private boolean isFast = true;
+    private Trigger isGamepadTriggerPressed;
+    private boolean lastTriggerValue = false;
 
     private Camera openCvCamera;
     private AprilTagCamera aprilTagCamera;
@@ -110,8 +117,8 @@ public class CleverBot {
         this.opMode = opMode;
 
         scoring = new ScoringSystem(opMode, constrains.opModeType);
-        //other = new OtherSystem(opMode);
-        //swerve = new CleverSwerve(opMode, constrains.localizer, constrains.opModeType);
+        other = new OtherSystem(opMode);
+        swerve = new CleverSwerve(opMode, constrains.localizer, constrains.opModeType);
 
         g1 = add_g1 ? new GamepadEx(opMode.gamepad1) : null;
         g2 = add_g2 ? new GamepadEx(opMode.gamepad2) : null;
@@ -119,13 +126,16 @@ public class CleverBot {
         openCvCamera = usingOpenCvCamera ? new Camera(opMode, telemetry) : null;
         aprilTagCamera = usingAprilTagCamera ? new AprilTagCamera(opMode, telemetry) : null;
 
+        isGamepadTriggerPressed = !usingButtonSensitivity && usingVelocityToggle ?
+                new Trigger(() -> g2.getTrigger(constrains.sensitivityTrigger) > 0.01) : null;
+
         batteryVoltageSensor = opMode.hardwareMap.voltageSensor.iterator().next();
-        core = new HubBulkRead(opMode.hardwareMap, LynxModule.BulkCachingMode.AUTO);
+        //core = new HubBulkRead(opMode.hardwareMap, LynxModule.BulkCachingMode.AUTO);
 
         if (constrains.sensitivityTrigger == null && constrains.sensitivityButton == null)
             usingDriveSensitivity = false;
 
-        //swerve.setBatteryVoltageSensor(batteryVoltageSensor);
+        swerve.setBatteryVoltageSensor(batteryVoltageSensor);
 
         setRobotInstance();
 
@@ -166,14 +176,14 @@ public class CleverBot {
 
 
     public void read() {
+        batteryVoltage = batteryVoltageSensor.getVoltage();
+
         scoring.read();
-        //other.read();
-        //swerve.read();
+        other.read();
+        swerve.read();
 
         if (g1 != null) g1.readButtons();
         if (g2 != null) g2.readButtons();
-
-        //batteryVoltage = batteryVoltageSensor.getVoltage();
     }
 
     public void readLift() {
@@ -188,8 +198,8 @@ public class CleverBot {
 
     public void updateAll() {
         scoring.update();
-        //other.update();
-        //swerve.update();
+        other.update();
+        swerve.update();
     }
 
 
@@ -218,23 +228,34 @@ public class CleverBot {
 
     public void setRobotInstance() {
         scoring.setRobotInstance(this);
-        //other.setRobotInstance(this);
-        //swerve.setRobotInstance(this);
+        other.setRobotInstance(this);
+        swerve.setRobotInstance(this);
     }
 
-    public void startEndgameTimer() { //other.start();
-    }
+    public void startEndgameTimer() { other.start(); }
 
     public void initializeScoring() { scoring.initializeSystem(); }
 
     public void drive(double x, double y, double heading) {
-        double speed = fastConstrain;
+        speed = fastConstrain;
 
         if (usingDriveSensitivity) {
-            if (usingButtonSensitivity && g1.isDown(constrains.sensitivityButton))
-                speed = slowConstrain;
-            else if (!usingButtonSensitivity && g2.getTrigger(constrains.sensitivityTrigger) > 0.01)
-                speed = slowConstrain;
+            if (usingVelocityToggle) {
+                if (usingButtonSensitivity && g1.wasJustPressed(constrains.sensitivityButton))
+                    isFast = !isFast;
+                else if(!usingButtonSensitivity)
+                    if(isGamepadTriggerPressed.get() && !lastTriggerValue)
+                        isFast = !isFast;
+
+                speed = isFast ? fastConstrain : slowConstrain;
+                lastTriggerValue = isGamepadTriggerPressed.get();
+            }
+            else {
+                if (usingButtonSensitivity && g1.isDown(constrains.sensitivityButton))
+                    speed = slowConstrain;
+                else if (!usingButtonSensitivity && g1.getTrigger(constrains.sensitivityTrigger) > 0.01)
+                    speed = slowConstrain;
+            }
         }
 
         swerve.drive(x, y, heading, speed);
@@ -305,18 +326,21 @@ public class CleverBot {
             telemetry.addData("manualIntake: ", scoring.isManualIntakeEnabled());
             telemetry.addData("manualOuttake: ", scoring.isManualOuttakeEnabled());*/
             telemetry.addData("pixels in possession: ", scoring.getNumberOfStoredPixels());
-            telemetry.addData("last collected pixel: ", scoring.getLastCollectedPixel());
+            //telemetry.addData("last collected pixel: ", scoring.getLastCollectedPixel());
 
             telemetry.addData("hasGrabbedOnePixel", scoring.hasGrabbedOnePixel());
             telemetry.addData("hasGrabbedTwoPixels", scoring.hasGrabbedTwoPixels());
 
-           /* telemetry.addData("Sliders: ", scoring.getCurrentLiftPositionAverage());
-            telemetry.addData("Left: ", scoring.getLeftOuttakeEncoderPosition());
-            telemetry.addData("Right: ", scoring.getRightOuttakeEncoderPosition());
+            telemetry.addData("swerve speed:", speed);
+            telemetry.addData("usingDriveSensitivity", usingDriveSensitivity);
+
+            //telemetry.addData("Sliders: ", scoring.getCurrentLiftPositionAverage());
+            //telemetry.addData("Left: ", scoring.getLeftOuttakeEncoderPosition());
+            //telemetry.addData("Right: ", scoring.getRightOuttakeEncoderPosition());
 
             telemetry.addData("lift MAX: ", scoring.getMAX());
-            telemetry.addData("lift MIN: ", scoring.getMIN());
-            telemetry.addData("lift target: ", scoring.getTarget());*/
+            //telemetry.addData("lift MIN: ", scoring.getMIN());
+            telemetry.addData("lift target: ", scoring.getTarget());
 
             //telemetry.addData("R: ", system.getR());
             //telemetry.addData("G: ", system.getG());

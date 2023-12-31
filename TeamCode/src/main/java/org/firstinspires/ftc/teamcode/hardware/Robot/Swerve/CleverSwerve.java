@@ -67,7 +67,7 @@ public class CleverSwerve extends SwerveKinematics implements Enums.Swerve, Enum
 
     private Localizer localizer;
     private Localizers localizerType;
-    private MotionPackage motionPackage = MotionPackage.CUSTOM;
+    private MotionPackage motionPackage = MotionPackage.ROADRUNNER;
 
     private VoltageSensor batteryVoltageSensor;
     private GamepadKeys sensitivityKey;
@@ -228,7 +228,7 @@ public class CleverSwerve extends SwerveKinematics implements Enums.Swerve, Enum
         Pose difference = lockPosition.subtract(currentPosition);
 
         Pose rotated_difference = difference.rotateWithRotationalMatrix(-currentPosition.heading);
-        drive(rotated_difference.x * xyP, rotated_difference.y * xyP, difference.heading * headingP, fastConstrain);
+        drive(rotated_difference.x * xyP, rotated_difference.y * xyP, difference.heading * headingP, slowConstrain);
     }
 
 
@@ -334,7 +334,7 @@ public class CleverSwerve extends SwerveKinematics implements Enums.Swerve, Enum
 
     public void updateDebuggingTelemetry() {
         if (telemetry != null) {
-            telemetry.addData("BL: ", backLeftModule.getModuleTarget());
+            /*telemetry.addData("BL: ", backLeftModule.getModuleTarget());
             telemetry.addData("FL: ", frontLeftModule.getModuleTarget());
             telemetry.addData("BR: ", backRightModule.getModuleTarget());
             telemetry.addData("FR: ", frontRightModule.getModuleTarget());
@@ -342,7 +342,7 @@ public class CleverSwerve extends SwerveKinematics implements Enums.Swerve, Enum
             telemetry.addData("raw BL: ", currentState.get(0, state.ANGLE));
             telemetry.addData("raw FL: ", currentState.get(1, state.ANGLE));
             telemetry.addData("raw FR: ", currentState.get(2, state.ANGLE));
-            telemetry.addData("raw BR: ", currentState.get(3, state.ANGLE));
+            telemetry.addData("raw BR: ", currentState.get(3, state.ANGLE));*/
 
             telemetry.addData("LOCKED: ", super.isLocked());
             telemetry.addData("is flipped: ", backLeftModule.wheelFlipped);

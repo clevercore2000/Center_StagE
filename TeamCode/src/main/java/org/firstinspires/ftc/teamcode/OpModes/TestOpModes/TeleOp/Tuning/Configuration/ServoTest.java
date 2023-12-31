@@ -24,9 +24,9 @@ public class ServoTest extends LinearOpMode {
     private GamepadEx g1;
 
     private static List<String> names = Arrays.asList("servo", "drone", "gripper", "left_arm", "right_arm", "rotation", "FL_servo", "FR_servo", "BL_servo", "BR_servo");
-    private static int i = 3, second_i = 3;
+    private static int i = 5, second_i = 3;
 
-    private double position = 0;
+    private double position = 0.29;
     private double increment = 0.05;
     private final double incrementSmall = 0.5;
 
@@ -36,7 +36,7 @@ public class ServoTest extends LinearOpMode {
         dashboardTelemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         testServo = hardwareMap.get(Servo.class, names.get(i));
         //testServo_right = hardwareMap.get(Servo.class, names.get(second_i));
-        testServo.setDirection(Servo.Direction.REVERSE);
+        //testServo.setDirection(Servo.Direction.REVERSE);
 
 
         waitForStart();

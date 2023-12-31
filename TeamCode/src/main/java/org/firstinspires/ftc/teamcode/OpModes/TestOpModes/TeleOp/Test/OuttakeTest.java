@@ -67,14 +67,14 @@ public class OuttakeTest extends LinearOpMode {
 
             double value = g2.getLeftY();
 
-            if (Math.abs(value) > 0.1) {
+            /*if (Math.abs(value) > 0.1) {
                 double sign =  (manualLiftPower % 2 == 0) ? Math.signum(value) : 1;
                 int target = (int) (outtake.getCurrentPositionAverage() + toPower(value, manualLiftPower) * manualLiftSensitivity * sign);
 
                 outtake.setTarget(target, false);
-            }
+            }*/
 
-            outtake.update();
+            //outtake.update();
             core.clearCache(Enums.Hubs.ALL);
 
             endLoopTime = System.nanoTime();

@@ -120,6 +120,11 @@ public class CleverData implements Enums,
         return this;
     }
 
+    public CleverData setUsingVelocityToggle(boolean flag) {
+        SwerveConstants.usingVelocityToggle = flag;
+        return this;
+    }
+
     public CleverData setUsingHeadingCorrection(boolean flag) {
         SwerveConstants.usingHeadingCorrection = flag;
         return this;

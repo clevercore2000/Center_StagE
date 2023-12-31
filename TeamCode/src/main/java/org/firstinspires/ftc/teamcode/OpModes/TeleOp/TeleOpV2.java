@@ -4,13 +4,11 @@ import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SystemC
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.Generals.Enums;
-import org.firstinspires.ftc.teamcode.OpModes.CleverMode;
 import org.firstinspires.ftc.teamcode.hardware.Robot.CleverBot;
 import org.firstinspires.ftc.teamcode.hardware.Robot.CleverData;
 
@@ -74,11 +72,11 @@ public class TeleOpV2 extends CleverMode {
 
                 if (robot.g2.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
 
-                        if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) { robot.scoring.score(Enums.Scoring.Score.HIGH); }
+                        if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_UP) && robot.scoring.hasGrabbedPixels()) { robot.scoring.score(Enums.Scoring.Score.HIGH); }
 
-                        if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) { robot.scoring.score(Enums.Scoring.Score.MID); }
+                        if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT) && robot.scoring.hasGrabbedPixels()) { robot.scoring.score(Enums.Scoring.Score.MID); }
 
-                        if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) { robot.scoring.score(Enums.Scoring.Score.LOW); }
+                        if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT) && robot.scoring.hasGrabbedPixels()) { robot.scoring.score(Enums.Scoring.Score.LOW); }
 
 
                     /**Grab pixels*/
@@ -109,6 +107,7 @@ public class TeleOpV2 extends CleverMode {
                         .add(Enums.OpMode.TELE_OP)
                         .add(Enums.Swerve.Localizers.IMU)
                         .addSwerveSensitivity(GamepadKeys.Trigger.LEFT_TRIGGER)
+                        .setUsingVelocityToggle(true)
                         .setLockedWheelStyle(Enums.Swerve.LockedWheelPositions.DEFAULT)
                         .setAutoReset(false)
                         .setAutoGetToIntermediary(false)
@@ -136,8 +135,6 @@ public class TeleOpV2 extends CleverMode {
             while (!isStopRequested()) {
                 robot.read();
                 robot.updateAll();
-                //robot.updateLift();
-                //robot.clearBulkCache();
             }
         });
 
@@ -147,7 +144,6 @@ public class TeleOpV2 extends CleverMode {
 
                 robot.readLift();
                 robot.updateLift();
-                //robot.clearBulkCache();
 
                 robot.getEndingLoopTime();
 
@@ -156,7 +152,7 @@ public class TeleOpV2 extends CleverMode {
             }
         });
 
-        /*swerveThread = new Thread(() -> {
+        swerveThread = new Thread(() -> {
             while (!isStopRequested()) {
                 while (opModeIsActive()) {
 
@@ -164,7 +160,7 @@ public class TeleOpV2 extends CleverMode {
                             robot.g1.getLeftX(),
                             robot.g1.getLeftY(),
                             robot.g1.getRightX());
-        }}});*/
+        }}});
 
         /*telemetryThread = new Thread(() -> {
             boolean opModeJustStarted = false;
@@ -182,7 +178,7 @@ public class TeleOpV2 extends CleverMode {
 
         readingThread.start();
         liftThread.start();
-        //swerveThread.start();
+        swerveThread.start();
         //telemetryThread.start();
     }
 

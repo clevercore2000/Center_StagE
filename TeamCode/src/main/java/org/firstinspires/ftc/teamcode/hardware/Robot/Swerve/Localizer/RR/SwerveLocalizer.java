@@ -26,8 +26,8 @@ public class SwerveLocalizer extends ThreeTrackingWheelLocalizer implements Loca
     //to be tuned (inch) - because roadrunner, duhh
     public static double LEFT_DISTANCE = -6.3;
     public static double RIGHT_DISTANCE = 4.67;
-    public static double LATERAL_DISTANCE = -11.54;
-    public static double PERPENDICULAR_DISTANCE = 2.75;
+    public static double LATERAL_DISTANCE = -16.84;
+    public static double PERPENDICULAR_DISTANCE = 0.02;//2.75;
 
     private Encoder leftEncoder, rightEncoder, frontEncoder;
 

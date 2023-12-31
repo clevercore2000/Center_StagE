@@ -38,6 +38,10 @@ public class PIDF_controllerTuner extends LinearOpMode {
     private String LEFT = "leftOuttake";
     private String RIGHT = "rightOuttake";
 
+    private double startLoopTime, endLoopTime;
+    private double secondsToNanoseconds = 1000000000;
+
+
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -56,6 +60,8 @@ public class PIDF_controllerTuner extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
+            startLoopTime = endLoopTime;
+
             int motorPositionL = leftMotor.getCurrentPosition();
             int motorPositionR = rightMotor.getCurrentPosition();
 
@@ -71,11 +77,13 @@ public class PIDF_controllerTuner extends LinearOpMode {
             leftMotor.setPower(power);
             rightMotor.setPower(powerR);
 
+            endLoopTime = System.nanoTime();
 
             telemetry.addData("Position Left:  ", motorPositionL);
             telemetry.addData("Position Right:  ", motorPositionR);
             telemetry.addData("POWER: ", powerR);
             telemetry.addData("target ", target);
+            telemetry.addData("Loop time: ", secondsToNanoseconds / (endLoopTime - startLoopTime));
 
             telemetry.update();
         }

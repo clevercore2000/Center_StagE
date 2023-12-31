@@ -7,6 +7,7 @@ import com.arcrobotics.ftclib.command.button.Button;
 import com.arcrobotics.ftclib.command.button.GamepadButton;
 import com.arcrobotics.ftclib.command.button.Trigger;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -24,6 +25,7 @@ import org.firstinspires.ftc.teamcode.hardware.Robot.Systems.ScoringSystem;
 import lombok.Builder;
 
 @TeleOp(name = "🍪", group = "DRĂCOS")
+@Disabled
 public class TeleOpKooky extends CommandOpMode {
     private CleverBot robot;
     private Telemetry dashboardTelemetry;
@@ -45,7 +47,7 @@ public class TeleOpKooky extends CommandOpMode {
                         .getLoopTime(true)
                         .setUsingAprilTag(false)
                         .setUsingOpenCv(false)
-                        .setMultithreading(false))
+                        .setMultithreading(true))
                 .addTelemetry(dashboardTelemetry)
                 .addGamepads(Enums.Gamepads.BOTH)
                 .construct(this);
@@ -54,6 +56,8 @@ public class TeleOpKooky extends CommandOpMode {
 
         robot.initializeScoring();
         robot.initCompleate();
+
+        robot.updateTelemetry();
 
         //stop intake
         robot.g2.getGamepadButton(GamepadKeys.Button.DPAD_UP)
@@ -114,6 +118,8 @@ public class TeleOpKooky extends CommandOpMode {
             robot.updateAll();
         }
 
+        robot.clearTelemetry();
+
     }
 
     @Override
@@ -126,7 +132,7 @@ public class TeleOpKooky extends CommandOpMode {
         robot.scoring.manualControlLift(robot.g2.getLeftY());
         robot.updateAll();
 
-        //robot.debuggingTelemetry();
+        robot.debuggingTelemetry();
 
         robot.getEndingLoopTime();
         robot.updateTelemetry();

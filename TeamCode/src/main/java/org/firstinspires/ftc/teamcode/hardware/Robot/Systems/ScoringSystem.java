@@ -7,6 +7,7 @@ import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SystemC
 import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SystemConstants.multithreading;
 import static org.firstinspires.ftc.teamcode.hardware.Generals.HardwareNames.transfer_color_sensor_down;
 import static org.firstinspires.ftc.teamcode.hardware.Generals.HardwareNames.transfer_color_sensor_up;
+import static org.firstinspires.ftc.teamcode.hardware.Robot.Systems.Subsystems.Scoring.Outtake.f;
 import static org.firstinspires.ftc.teamcode.hardware.Robot.Systems.Subsystems.Scoring.Outtake.outOfTransferThreshold;
 import static org.firstinspires.ftc.teamcode.hardware.Robot.Systems.Subsystems.Scoring.Outtake.safeRotationThreshold;
 import static org.firstinspires.ftc.teamcode.motion.WayFinder.Math.MathFormulas.toPower;
@@ -156,10 +157,10 @@ public class ScoringSystem implements Enums.Scoring, Enums {
             getTo(Position.INTERMEDIARY);
             stopIntake();
         } else if (opModeType == OpMode.AUTONOMUS) {
-            //tune this later
+            getTo(Position.COLLECT);
+            stopIntake();
         }
 
-        if (!multithreading) { updateLift(); }
     }
 
 
@@ -175,7 +176,7 @@ public class ScoringSystem implements Enums.Scoring, Enums {
     public void updateAutoActions() {
         updateSensors();
         updateCollectedPixels();
-        if (outtake.getCurrentPositionAverage() > outOfTransferThreshold)
+        if (outtake.getCurrentPositionAverage() > outOfTransferThreshold || outtake.getRotationState() == OuttakeRotationStates.SCORE)
             updateCorrection();
         updateState();
     }
@@ -198,8 +199,10 @@ public class ScoringSystem implements Enums.Scoring, Enums {
         isFirstPixelInTransfer = transferFirstSensorDistance < distanceCheckingIfPixelIsInTransfer;
         isSecondPixelInTransfer = transferSecondSensorDistance < distanceCheckingIfPixelIsInTransfer;
 
+        boolean outtakeOutOfTransfer = outtake.getCurrentPositionAverage() > outOfTransferThreshold || outtake.getRotationState() == OuttakeRotationStates.SCORE;
+
         if (isFirstPixelInTransfer && pixelsInPossession.size() == 0) { pixelsInPossession.add(Pixels.UNIDENTIFIED); }
-        else if (isFirstPixelInTransfer && pixelsInPossession.size() == 1 && hasGrabbedOnePixel) { pixelsInPossession.add(Pixels.UNIDENTIFIED); }
+        else if (isFirstPixelInTransfer && pixelsInPossession.size() == 1 && hasGrabbedOnePixel && outtakeOutOfTransfer) { pixelsInPossession.add(Pixels.UNIDENTIFIED); }
         else if (isSecondPixelInTransfer && pixelsInPossession.size() == 1) { pixelsInPossession.add(Pixels.UNIDENTIFIED); }
     }
 
@@ -211,6 +214,7 @@ public class ScoringSystem implements Enums.Scoring, Enums {
 
         if (hasGrabbedOnePixel) {
             if (isSecondPixelInTransfer) { hasGrabbedOnePixel = false; }
+            if (!isFirstPixelInTransfer) { removePixelsUntilRemain(1); }
         }
 
         if (hasGrabbedTwoPixels) {
@@ -478,6 +482,9 @@ public class ScoringSystem implements Enums.Scoring, Enums {
 
     public boolean hasGrabbedTwoPixels() { return hasGrabbedTwoPixels; }
 
+    public boolean hasGrabbedPixels() { return hasGrabbedOnePixel || hasGrabbedTwoPixels; }
+
+
 
     /*
     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
@@ -497,7 +504,7 @@ public class ScoringSystem implements Enums.Scoring, Enums {
             default: {}
         }
 
-        while (!opMode.isStopRequested() && outtake.isLiftBusy(5)) {
+        while (!opMode.isStopRequested() && outtake.isLiftBusy(5) && !isLiftConstrained()) {
             sleep(1, multithreading ? Update.NONE : Update.OUTTAKE);
         }
 
@@ -509,7 +516,7 @@ public class ScoringSystem implements Enums.Scoring, Enums {
             if (outtake.getTarget() < safeRotationThreshold) {
                 outtake.setTarget(safeRotationThreshold, true);
 
-                while (!opMode.isStopRequested() && outtake.isLiftBusy(5)) {
+                while (!opMode.isStopRequested() && outtake.isLiftBusy(5) && !isLiftConstrained()) {
                     sleep(1, multithreading ? Update.NONE : Update.OUTTAKE);
                 }
             }
@@ -553,6 +560,7 @@ public class ScoringSystem implements Enums.Scoring, Enums {
 
             case SCORE: {
                 setState(OuttakeGripperStates.CLOSED);
+                sleep(timeToOpenGripper, multithreading ? Update.NONE : Update.OUTTAKE);
 
                 if (autoGetBackToIntermediary) { getTo(Position.INTERMEDIARY); }
 
@@ -566,25 +574,21 @@ public class ScoringSystem implements Enums.Scoring, Enums {
             case COLLECT_GRAB: {
                 if (!hasGrabbedOnePixel() && !hasGrabbedTwoPixels()) {
 
-                    if (getNumberOfStoredPixels() == StoredPixels.ONE) {
+                    if (numberOfCollectedPixels == StoredPixels.ONE) {
                         hasGrabbedOnePixel = true;
                         outtake.setMaxManualTarget(LiftStates.HIGH);
-                    } else {
-                        hasGrabbedOnePixel = false;
-                        outtake.setMaxManualTarget(LiftStates.INTERMEDIARY);
-                    }
-
-                    if (getNumberOfStoredPixels() == StoredPixels.TWO) {
+                    } else if (numberOfCollectedPixels == StoredPixels.TWO) {
                         hasGrabbedTwoPixels = true;
                         outtake.setMaxManualTarget(LiftStates.HIGH);
-                    } else {
+                    } else if (numberOfCollectedPixels == StoredPixels.ZERO) {
+                        hasGrabbedOnePixel = false;
                         hasGrabbedTwoPixels = false;
                         outtake.setMaxManualTarget(LiftStates.INTERMEDIARY);
                     }
 
                     getTo(Position.COLLECT);
 
-                    while (!opMode.isStopRequested() && outtake.isLiftBusy(5)) {
+                    while (!opMode.isStopRequested() && outtake.isLiftBusy(5) && !isLiftConstrained()) {
                         sleep(1, multithreading ? Update.NONE : Update.OUTTAKE);
                     }
 

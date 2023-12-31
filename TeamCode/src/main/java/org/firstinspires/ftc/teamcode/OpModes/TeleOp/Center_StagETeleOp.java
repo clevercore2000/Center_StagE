@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -17,7 +18,7 @@ import org.firstinspires.ftc.teamcode.hardware.Robot.Systems.OtherSystem;
 import org.firstinspires.ftc.teamcode.hardware.Robot.Systems.ScoringSystem;
 
 @TeleOp(name = "🤯", group = "DRĂCOS")
-
+@Disabled
 public class Center_StagETeleOp extends LinearOpMode
         implements Enums.Other, Enums.Swerve, Enums.Scoring, Enums {
     public CleverSwerve swerve;

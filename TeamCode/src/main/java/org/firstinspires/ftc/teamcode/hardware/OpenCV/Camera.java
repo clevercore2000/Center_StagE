@@ -88,7 +88,10 @@ public class Camera {
         setCameraParameters(cameraOrientation);
     }
 
-    public void close() { camera.closeCameraDeviceAsync(null); }
+    public void close() { camera.closeCameraDeviceAsync(new OpenCvCamera.AsyncCameraCloseListener() {
+        @Override
+        public void onClose() { opMode.idle(); }
+    }); }
 
     protected String getCameraName() { return cameraConfigurationName; }
 

@@ -2,14 +2,20 @@ package org.firstinspires.ftc.teamcode.OpModes.Autonomus;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.Generals.Enums;
-import org.firstinspires.ftc.teamcode.OpModes.CleverMode;
+import org.firstinspires.ftc.teamcode.OpModes.TeleOp.CleverMode;
 import org.firstinspires.ftc.teamcode.hardware.Robot.CleverBot;
 import org.firstinspires.ftc.teamcode.hardware.Robot.CleverData;
+import org.firstinspires.ftc.teamcode.motion.RR.trajectorysequence.TrajectorySequence;
+import org.firstinspires.ftc.teamcode.motion.WayFinder.Localization.Pose;
 
+@Autonomous(name = "RED")
 public class AutoRed extends CleverMode {
     private CleverBot robot;
     private Enums.Randomization randomization;
@@ -26,6 +32,30 @@ public class AutoRed extends CleverMode {
         WhenStarted();
 
         AutonomusTasks();
+
+        boolean hasGotBack = false;
+        while (opModeIsActive()) {
+            idle();
+
+            robot.swerve.lockToPosition(new Pose(40, 0, Math.toRadians(180)));
+
+            dashboardTelemetry.addLine("             POSE"                                       );
+            dashboardTelemetry.addData("x:        ", robot.swerve.getPoseEstimate().x                      );
+            dashboardTelemetry.addData("y:        ", robot.swerve.getPoseEstimate().y                      );
+            dashboardTelemetry.addData("heading:  ", Math.toDegrees(robot.swerve.getPoseEstimate().heading));
+
+            dashboardTelemetry.update();
+            /*if (!robot.swerve.isBusy() && !hasGotBack) {
+
+                TrajectorySequence goBack = robot.swerve.trajectorySequenceBuilder(robot.getRobotPosition())
+                        .lineToLinearHeading(new Pose2d(0,0,0))
+                        .build();
+
+                hasGotBack = true;
+
+                robot.swerve.followTrajectorySequenceAsync(goBack);
+            }*/
+        }
 
     }
 
@@ -47,9 +77,11 @@ public class AutoRed extends CleverMode {
                 .addTelemetry(dashboardTelemetry)
                 .construct(this);
 
+        robot.initializeScoring();
+        robot.setPipeline(Enums.Pipelines.DETECTING_PROP);
+
         InitializeThreads();
 
-        robot.initializeScoring();
         robot.initCompleate();
     }
 
@@ -57,6 +89,9 @@ public class AutoRed extends CleverMode {
     protected void WaitForStart() {
         while (!isStarted() && !isStopRequested()) {
             robot.searchForProp();
+
+            dashboardTelemetry.addData("Randomization: ", robot.getPropPosition());
+            dashboardTelemetry.update();
         }
     }
 
@@ -64,36 +99,52 @@ public class AutoRed extends CleverMode {
         readingThread = new Thread(() -> {
             while (!isStopRequested()) {
                 robot.read();
-                robot.clearBulkCache();
+                robot.updateSwerve();
+                //robot.clearBulkCache();
             }
         });
 
         liftThread = new Thread(() -> {
             while (!isStopRequested()) {
+                robot.readLift();
                 robot.updateLift();
             }
         });
+
+
 
         readingThread.start();
         liftThread.start();
     }
 
     protected void WhenStarted() {
+        robot.clearTelemetry();
+
         randomization = robot.getPropPosition();
         robot.closeCamera();
     }
 
-    private void parkWithoutLocalization() {
-        ElapsedTime timerToGoPark = new ElapsedTime();
-        double secondsToGoPark = 1.3;
+    private void goToRandomizationPlace() {
+        TrajectorySequence goToRandom = null;
 
-        timerToGoPark.startTime();
+        switch (randomization) {
+            case LEFT: { goToRandom = robot.swerve.trajectorySequenceBuilder(new Pose())
+                    .lineToLinearHeading(new Pose2d(-20, 0 , Math.toDegrees(120)))
+                    .waitSeconds(3)
+                    .lineToLinearHeading(new Pose2d(0, 0, 0))
+                    .waitSeconds(3)
+                    .splineTo(new Vector2d(20, 20), 0)
+                    .build();
+            }
+        }
 
-        while (timerToGoPark.seconds() <= secondsToGoPark) { robot.drive(1, 0, 0);}
+        if (goToRandom != null)
+            robot.swerve.followTrajectorySequenceAsync(goToRandom);
+
     }
 
     @Override
     protected void AutonomusTasks() {
-        parkWithoutLocalization();
+        //goToRandomizationPlace();
     }
 }

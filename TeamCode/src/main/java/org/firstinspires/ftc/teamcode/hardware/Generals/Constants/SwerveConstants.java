@@ -20,11 +20,12 @@ public class SwerveConstants {
     public static boolean usingDriveSensitivity = false;
     public static boolean usingButtonSensitivity = false;
     public static boolean usingHeadingCorrection = false;
+    public static boolean usingVelocityToggle = true;
 
     public static Enums.Swerve.LockedWheelPositions lockedStatus = Enums.Swerve.LockedWheelPositions.DEFAULT;
 
     public static final double fastConstrain = 1;
-    public static final double slowConstrain = 0.5;
+    public static final double slowConstrain = 0.4;
 
     public static double MAX_VEL = 30;
     public static double MAX_ACCEL = 30;

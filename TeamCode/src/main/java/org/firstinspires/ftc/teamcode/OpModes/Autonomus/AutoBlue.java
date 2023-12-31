@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.Generals.Enums;
-import org.firstinspires.ftc.teamcode.OpModes.CleverMode;
+import org.firstinspires.ftc.teamcode.OpModes.TeleOp.CleverMode;
 import org.firstinspires.ftc.teamcode.hardware.Robot.CleverBot;
 import org.firstinspires.ftc.teamcode.hardware.Robot.CleverData;
 

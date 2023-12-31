@@ -13,6 +13,8 @@ import org.firstinspires.ftc.teamcode.motion.WayFinder.Localization.Pose;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 public class PurePursuit implements Paths {
     private List<Point> pathPoints = new ArrayList<Point>();
     private Point lastFollowedPoint = new Point();
@@ -38,9 +40,12 @@ public class PurePursuit implements Paths {
 
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-    public PurePursuit() {}
+    public PurePursuit(Point startPoint) { addPoint(startPoint); }
 
-    public PurePursuit(double radius) { this.radiusToSearch = radius; }
+    public PurePursuit(Point startPoint, double radius) {
+        this(startPoint);
+        this.radiusToSearch = radius;
+    }
 
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
@@ -166,6 +171,7 @@ public class PurePursuit implements Paths {
 
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
+    @Nullable
     private List<Point> findCircleIntersections(Point point1, Point point2) throws NotAPolynomialException {
         Coefficients lineEcuationCoefficients = findLinearFunction(point1, point2);
 
@@ -180,7 +186,7 @@ public class PurePursuit implements Paths {
         if (solutions == null) { return null; }
 
         List<Point> intersectingPoints = new ArrayList<>();
-        for(int i = 0; i <= solutions.length; i++) {
+        for(int i = 0; i < solutions.length; i++) {
             double pointX = solutions[i];
             double pointY = lineEquation_a * pointX + lineEquation_b;
 

@@ -73,7 +73,7 @@ public class GenericFollower {
         }
 
         if (currentBuildPath == null)
-            currentBuildPath = new PurePursuit();
+            currentBuildPath = new PurePursuit(new Point());
 
 
         return this;

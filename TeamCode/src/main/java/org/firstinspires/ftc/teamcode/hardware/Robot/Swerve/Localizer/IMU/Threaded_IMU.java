@@ -57,8 +57,8 @@ public class Threaded_IMU implements Localizer {
     /**The only useful value from here**/
     public double getAngle(AngleUnit unit) {
         switch (unit) {
-            case RADIANS: { return imuAngle - imuOffset; }
-            case DEGREES: { return fromRadiansToDegrees(imuAngle - imuOffset); }
+            case RADIANS: { return imuAngle - imuOffset - Math.PI; }
+            case DEGREES: { return fromRadiansToDegrees(imuAngle - imuOffset - Math.PI); }
             default: { return 0; }
         }
     }

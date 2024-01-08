@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.hardware.Robot.CleverData;
 import org.firstinspires.ftc.teamcode.hardware.Robot.Swerve.Localizer.Custom.CustomSwerveLocalizer;
 import org.firstinspires.ftc.teamcode.hardware.Robot.Swerve.CleverSwerve;
 import org.firstinspires.ftc.teamcode.hardware.Robot.Swerve.Localizer.RR.SwerveLocalizer;
+import org.firstinspires.ftc.teamcode.hardware.Robot.Swerve.Localizer.RR.TwoWheelSwerveLocalizer;
 import org.firstinspires.ftc.teamcode.motion.WayFinder.Localization.Pose;
 
 @TeleOp(name = "🥵", group = "test")
@@ -29,9 +30,9 @@ public class TestSwerve extends LinearOpMode {
         g1 = new GamepadEx(gamepad1);
 
         CleverData constrains = new CleverData()
-                .setFieldCentric(true);
+                .setFieldCentric(false);
 
-        swerve = new CleverSwerve(this, CleverSwerve.Localizers.ROADRUNNER, Enums.OpMode.TELE_OP);
+        swerve = new CleverSwerve(this, CleverSwerve.Localizers.ROADRUNNER_TWO_WHEELS, Enums.OpMode.TELE_OP);
         swerve.setTelemetry(dashboardTelemetry);
 
         dashboardTelemetry.addLine("INIT FINISHED");
@@ -45,8 +46,10 @@ public class TestSwerve extends LinearOpMode {
 
         while (opModeIsActive()) {
             swerve.drive(g1.getLeftX(), g1.getLeftY(), g1.getRightX(), SwerveConstants.fastConstrain);
+            swerve.read();
+            swerve.update();
 
-            if (swerve.getLocalizer() instanceof SwerveLocalizer) {
+            if (swerve.getLocalizer() instanceof SwerveLocalizer || swerve.getLocalizer() instanceof CustomSwerveLocalizer || swerve.getLocalizer() instanceof TwoWheelSwerveLocalizer) {
                 dashboardTelemetry.addLine("             POSE");
                 dashboardTelemetry.addData("x:        ", swerve.getPoseEstimate().x);
                 dashboardTelemetry.addData("y:        ", swerve.getPoseEstimate().y);

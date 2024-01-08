@@ -26,20 +26,10 @@ public class TestPullUp extends LinearOpMode implements Enums.Other {
         waitForStart();
 
         while (opModeIsActive()) {
-            pullup.setPower(-g2.getRightY());
+            pullup.setPower(g2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) -
+                    g2.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER));
 
-            if (g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) { pullup.setState(PullUpPositions.UP); }
 
-            if (g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) { pullup.setState(PullUpPositions.HANGING); }
-
-            if (g2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) { pullup.setState(PullUpPositions.DOWN); }
-
-            pullup.update();
-            g2.readButtons();
-            dashboardTelemetry.addData("state: ", pullup.getState());
-            dashboardTelemetry.addData("is pressed: ", pullup.isAllTheWayUp());
-            dashboardTelemetry.addData("position: ", pullup.getPosition());
-            dashboardTelemetry.update();
         }
 
         //pullup.hasToGetToHang(true);

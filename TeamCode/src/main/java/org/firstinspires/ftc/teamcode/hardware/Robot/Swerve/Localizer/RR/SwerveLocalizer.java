@@ -1,8 +1,14 @@
 package org.firstinspires.ftc.teamcode.hardware.Robot.Swerve.Localizer.RR;
 
+import static org.firstinspires.ftc.teamcode.hardware.Generals.HardwareNames.BL_encoder;
+import static org.firstinspires.ftc.teamcode.hardware.Generals.HardwareNames.BL_motor;
+import static org.firstinspires.ftc.teamcode.hardware.Generals.HardwareNames.FL_motor;
+import static org.firstinspires.ftc.teamcode.hardware.Generals.HardwareNames.FR_motor;
 import static org.firstinspires.ftc.teamcode.motion.WayFinder.Math.Transformations.Pose2d_2_Pose;
+import static org.firstinspires.ftc.teamcode.motion.WayFinder.Math.Transformations.Pose_2_Pose2d;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.localization.ThreeTrackingWheelLocalizer;
@@ -26,8 +32,7 @@ public class SwerveLocalizer extends ThreeTrackingWheelLocalizer implements Loca
     //to be tuned (inch) - because roadrunner, duhh
     public static double LEFT_DISTANCE = -6.3;
     public static double RIGHT_DISTANCE = 4.67;
-    public static double LATERAL_DISTANCE = -16.84;
-    public static double PERPENDICULAR_DISTANCE = 0.02;//2.75;
+    public static double FRONT_DISTANCE = 2.75;
 
     private Encoder leftEncoder, rightEncoder, frontEncoder;
 
@@ -37,14 +42,14 @@ public class SwerveLocalizer extends ThreeTrackingWheelLocalizer implements Loca
 
     public SwerveLocalizer(HardwareMap hardwareMap) {
         super(Arrays.asList(
-                new Pose2d(0, LATERAL_DISTANCE / 2, 0), // left
-                new Pose2d(0, -LATERAL_DISTANCE / 2, 0), // right
-                new Pose2d(PERPENDICULAR_DISTANCE, 0, Math.toRadians(90)) // front/back/perpendicular
+                new Pose2d(0, LEFT_DISTANCE, 0), // left
+                new Pose2d(0, RIGHT_DISTANCE, 0), // right
+                new Pose2d(FRONT_DISTANCE, 0, Math.toRadians(90)) // front/back/perpendicular
         ));
 
-        leftEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "FR"));
-        rightEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "FL"));
-        frontEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "BL"));
+        leftEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, FR_motor));
+        rightEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, FL_motor));
+        frontEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, BL_motor));
 
         //TODO: reverse any encoders using Encoder.setDirection(Encoder.Direction.REVERSE)
     }
@@ -71,6 +76,7 @@ public class SwerveLocalizer extends ThreeTrackingWheelLocalizer implements Loca
 
     public Pose getRobotPosition() { return Pose2d_2_Pose(super.getPoseEstimate()); }
 
+    @Nullable
     public Pose getRobotVelocity() { return Pose2d_2_Pose(super.getPoseVelocity()); }
 
     public double getAngle(AngleUnit unit) {
@@ -83,12 +89,7 @@ public class SwerveLocalizer extends ThreeTrackingWheelLocalizer implements Loca
 
 
 
-    public void setPositionEstimate(Pose newPose) {
-        Pose2d pose2d = new Pose2d(newPose.x, newPose.y, newPose.heading);
-        super.setPoseEstimate(pose2d);
-    }
-
-
+    public void setPositionEstimate(Pose newPose) { super.setPoseEstimate(Pose_2_Pose2d(newPose)); }
 
     @Override
     public void update() { super.update(); }

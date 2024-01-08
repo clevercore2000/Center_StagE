@@ -35,7 +35,7 @@ public class BackAndForth extends LinearOpMode {
     CleverSwerve swerve;
     @Override
     public void runOpMode() throws InterruptedException {
-        swerve = new CleverSwerve(this, CleverSwerve.Localizers.CUSTOM, Enums.OpMode.AUTONOMUS);
+        swerve = new CleverSwerve(this, CleverSwerve.Localizers.ROADRUNNER_THREE_WHEELS, Enums.OpMode.AUTONOMUS);
 
         TrajectorySequence trajectoryForward = swerve.trajectorySequenceBuilder(new Pose())
                 .forward(DISTANCE)

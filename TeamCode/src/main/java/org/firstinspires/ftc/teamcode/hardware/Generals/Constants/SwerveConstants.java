@@ -32,8 +32,8 @@ public class SwerveConstants {
     public static double MAX_ANG_VEL = 2;
     public static double MAX_ANG_ACCEL = 2;
 
-    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(8, 0, 0);
-    public static PIDCoefficients HEADING_PID = new PIDCoefficients(8, 0, 0);
+    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(0.1, 0, 0);
+    public static PIDCoefficients HEADING_PID = new PIDCoefficients(0.415, 0, 0);
     public static PIDCoefficients MODULE_PID = new PIDCoefficients(0.6, 0, 0.1);
 
     public static double xyP = TRANSLATIONAL_PID.kP, headingP = HEADING_PID.kP;

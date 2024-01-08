@@ -10,6 +10,6 @@ import org.firstinspires.ftc.teamcode.hardware.Robot.Systems.ScoringSystem;
 public class OuttakePixelCommand extends InstantCommand {
 
     public OuttakePixelCommand(ScoringSystem scoring, Enums.Scoring.PixelActions action) {
-        super(() -> { if (scoring.isManualOuttakeEnabled() || !useManualEnable) scoring.pixels(action); });
+        super(() -> { if (scoring.isManualOuttakeEnabled() || !useManualEnable) scoring.pixels(action, false); });
     }
 }

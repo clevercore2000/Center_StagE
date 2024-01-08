@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.OpModes.TeleOp;
 
 import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SystemConstants.useManualEnable;
+import static org.firstinspires.ftc.teamcode.hardware.Robot.Systems.ScoringSystem.justScoredPixels;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -35,8 +36,10 @@ public class TeleOpV2 extends CleverMode {
             robot.updateAll();
             robot.clearBulkCache();*/
 
-            if (robot.g2.wasJustPressed(GamepadKeys.Button.LEFT_STICK_BUTTON)) { robot.other.setState(Enums.Other.DronePosition.FIRE); }
+            if (robot.g1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) { robot.other.setState(Enums.Other.DronePosition.FIRE); }
 
+            robot.other.setPower(robot.g2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) -
+                    robot.g2.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER));
 
 
             /**Access to intake actions is necessary*/
@@ -64,7 +67,15 @@ public class TeleOpV2 extends CleverMode {
 
             /**Manual lowering*/
             if (robot.g2.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
-                if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) { robot.scoring.getTo(Enums.Scoring.Position.INTERMEDIARY); }
+                if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
+                    if (justScoredPixels) {
+                        robot.scoring.getTo(Enums.Scoring.Position.COLLECT);
+                        justScoredPixels = false;
+                    }
+                    else {
+                        robot.scoring.getTo(Enums.Scoring.Position.INTERMEDIARY);
+                    }
+                }
             }
 
             /**Access to outtake actions is necessary*/
@@ -72,28 +83,24 @@ public class TeleOpV2 extends CleverMode {
 
                 if (robot.g2.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
 
-                        if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_UP) && robot.scoring.hasGrabbedPixels()) { robot.scoring.score(Enums.Scoring.Score.HIGH); }
+                        if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_UP) && robot.scoring.hasGrabbedPixels()) { robot.scoring.score(Enums.Scoring.Score.HIGH); justScoredPixels = false; }
 
-                        if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT) && robot.scoring.hasGrabbedPixels()) { robot.scoring.score(Enums.Scoring.Score.MID); }
+                        if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT) && robot.scoring.hasGrabbedPixels()) { robot.scoring.score(Enums.Scoring.Score.MID); justScoredPixels = false; }
 
-                        if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT) && robot.scoring.hasGrabbedPixels()) { robot.scoring.score(Enums.Scoring.Score.LOW); }
+                        if (robot.g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT) && robot.scoring.hasGrabbedPixels()) { robot.scoring.score(Enums.Scoring.Score.LOW); justScoredPixels = false; }
 
 
                     /**Grab pixels*/
-                    if ((robot.g2.wasJustPressed(GamepadKeys.Button.A))) { robot.scoring.pixels(Enums.Scoring.PixelActions.COLLECT_GRAB); }
+                    if ((robot.g2.wasJustPressed(GamepadKeys.Button.A))) { robot.scoring.pixels(Enums.Scoring.PixelActions.COLLECT_GRAB, true); }
 
                 }
 
                     /**SCORE PIXELS BABYYYY*/
-                    if (robot.g2.wasJustPressed(GamepadKeys.Button.B)) { robot.scoring.pixels(Enums.Scoring.PixelActions.SCORE); }
+                    if (robot.g2.wasJustPressed(GamepadKeys.Button.B)) { robot.scoring.pixels(Enums.Scoring.PixelActions.SCORE, false); }
             }
 
-            robot.scoring.manualControlLift(robot.g2.getLeftY());
 
-            //robot.getEndingLoopTime();
-
-            //robot.debuggingTelemetry();
-            //robot.updateTelemetry();
+            robot.manualControlLift(robot.g2.getLeftY());
 
         }
 
@@ -111,7 +118,7 @@ public class TeleOpV2 extends CleverMode {
                         .setLockedWheelStyle(Enums.Swerve.LockedWheelPositions.DEFAULT)
                         .setAutoReset(false)
                         .setAutoGetToIntermediary(false)
-                        .setFieldCentric(false)
+                        .setFieldCentric(true)
                         .allowOtherUsageBeforeEndgame(true)
                         .getLoopTime(true)
                         .setUsingAprilTag(false)
@@ -147,7 +154,7 @@ public class TeleOpV2 extends CleverMode {
 
                 robot.getEndingLoopTime();
 
-                robot.debuggingTelemetry();
+                //robot.debuggingTelemetry();
                 robot.updateTelemetry();
             }
         });

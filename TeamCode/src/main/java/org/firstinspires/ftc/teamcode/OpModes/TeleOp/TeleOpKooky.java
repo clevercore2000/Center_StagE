@@ -129,7 +129,7 @@ public class TeleOpKooky extends CommandOpMode {
 
         robot.read();
 
-        robot.scoring.manualControlLift(robot.g2.getLeftY());
+        //robot.scoring.manualControlLift(robot.g2.getLeftY());
         robot.updateAll();
 
         robot.debuggingTelemetry();

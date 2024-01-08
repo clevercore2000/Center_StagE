@@ -37,7 +37,7 @@ public class AutoBlue extends CleverMode {
         robot = new CleverBot()
                 .addConstrains(new CleverData()
                         .add(Enums.OpMode.AUTONOMUS)
-                        .add(Enums.Swerve.Localizers.ROADRUNNER)
+                        .add(Enums.Swerve.Localizers.ROADRUNNER_THREE_WHEELS)
                         .setLockedWheelStyle(Enums.Swerve.LockedWheelPositions.DEFAULT)
                         .setAutoOnBlue(true)
                         .setAutoReset(false)

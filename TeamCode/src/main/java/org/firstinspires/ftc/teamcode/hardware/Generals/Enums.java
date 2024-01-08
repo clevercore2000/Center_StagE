@@ -30,6 +30,13 @@ public interface Enums {
         BOTH
     }
 
+    enum Rumbles{
+        START_PULLUP,
+        STOP_PULLUP,
+        SLOW_SWERVE,
+        FAST_SWERVE
+    }
+
 
     interface Scoring {
         enum Pixels{
@@ -135,13 +142,15 @@ public interface Enums {
     interface Swerve {
         enum MotionPackage {
             ROADRUNNER,
-            CUSTOM
+            CUSTOM,
+            PID
         }
 
         enum Localizers {
             CUSTOM,
             IMU,
-            ROADRUNNER
+            ROADRUNNER_THREE_WHEELS,
+            ROADRUNNER_TWO_WHEELS
         }
 
         enum ModuleOffset {

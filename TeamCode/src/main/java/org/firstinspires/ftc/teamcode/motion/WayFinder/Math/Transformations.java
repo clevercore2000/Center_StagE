@@ -11,7 +11,8 @@ public class Transformations {
 
     public static Pose2d Pose_2_Pose2d(Pose pose) { return new Pose2d(pose.x, pose.y, pose.heading); }
 
-    public static Pose Pose2d_2_Pose(Pose2d pose) { return new Pose(pose.getX(), pose.getY(), pose.getHeading()); }
+    public static Pose Pose2d_2_Pose(Pose2d pose) { if (pose != null) return new Pose(pose.getX(), pose.getY(), pose.getHeading());
+    return new Pose(); }
 
     public static List<Double> doubleMatrix_2_doubleList(double[][] matrix) {
         return Arrays.asList(matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3]);

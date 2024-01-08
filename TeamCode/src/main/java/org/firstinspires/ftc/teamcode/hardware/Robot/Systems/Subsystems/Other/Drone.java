@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.hardware.Generals.Enums;
 public class Drone implements Enums.Other {
     private Servo servo;
 
-    private final double load = 0.5, fire =  0.0;
+    private final double load = 0.05, fire =  0.45;
     private DronePosition position = DronePosition.LOAD;
 
     public Drone(HardwareMap hardwareMap) { servo = hardwareMap.get(Servo.class, "drone"); update(); }

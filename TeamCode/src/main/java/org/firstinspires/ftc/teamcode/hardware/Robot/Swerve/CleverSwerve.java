@@ -12,6 +12,7 @@ import static org.firstinspires.ftc.teamcode.hardware.Generals.HardwareNames.FL_
 import static org.firstinspires.ftc.teamcode.hardware.Generals.HardwareNames.FR_encoder;
 import static org.firstinspires.ftc.teamcode.hardware.Generals.HardwareNames.FR_motor;
 import static org.firstinspires.ftc.teamcode.hardware.Generals.HardwareNames.FR_servo;
+import static org.firstinspires.ftc.teamcode.motion.WayFinder.Math.MathFormulas.toPower;
 import static org.firstinspires.ftc.teamcode.motion.WayFinder.Math.Transformations.Pose2d_2_Pose;
 import static org.firstinspires.ftc.teamcode.motion.WayFinder.Math.Transformations.Pose_2_Pose2d;
 
@@ -41,6 +42,7 @@ import org.firstinspires.ftc.teamcode.hardware.Robot.Swerve.Localizer.Custom.Cus
 import org.firstinspires.ftc.teamcode.hardware.Generals.Localizer;
 import org.firstinspires.ftc.teamcode.hardware.Robot.Swerve.Localizer.IMU.Threaded_IMU;
 import org.firstinspires.ftc.teamcode.hardware.Robot.Swerve.Localizer.RR.SwerveLocalizer;
+import org.firstinspires.ftc.teamcode.hardware.Robot.Swerve.Localizer.RR.TwoWheelSwerveLocalizer;
 import org.firstinspires.ftc.teamcode.hardware.Robot.Swerve.SwerveModule.SwerveModule;
 import org.firstinspires.ftc.teamcode.motion.RR.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.motion.RR.trajectorysequence.TrajectorySequenceBuilder;
@@ -63,14 +65,13 @@ public class CleverSwerve extends SwerveKinematics implements Enums.Swerve, Enum
     private SwerveState currentState;
 
     double batteryVoltage;
-    private double validHeading;
+    private boolean hasLockedToPosition = false;
 
     private Localizer localizer;
     private Localizers localizerType;
     private MotionPackage motionPackage = MotionPackage.ROADRUNNER;
 
     private VoltageSensor batteryVoltageSensor;
-    private GamepadKeys sensitivityKey;
 
     private LinearOpMode opMode;
     private OpMode opModeType;
@@ -86,7 +87,9 @@ public class CleverSwerve extends SwerveKinematics implements Enums.Swerve, Enum
     */
 
 
-    public CleverSwerve getInstance() { return this; }
+    public CleverSwerve getInstance() {
+        return this;
+    }
 
     public CleverSwerve(LinearOpMode opMode, Localizers localizerType, OpMode opModeType) {
         this.opMode = opMode;
@@ -116,14 +119,17 @@ public class CleverSwerve extends SwerveKinematics implements Enums.Swerve, Enum
                 0.5, 0.5, 0.5, 0.5
         ), ModuleOffset.POSITION);*/
 
-        if (motionPackage == MotionPackage.ROADRUNNER) { initializeRoadrunner(); }
+        if (motionPackage == MotionPackage.ROADRUNNER) {
+            initializeRoadrunner();
+        }
 
         this.localizerType = localizerType;
         this.opModeType = opModeType;
 
         switch (this.localizerType) {
             case IMU: { localizer = new Threaded_IMU(opMode); } break;
-            case ROADRUNNER: { localizer = new SwerveLocalizer(opMode.hardwareMap); } break;
+            case ROADRUNNER_THREE_WHEELS: { localizer = new SwerveLocalizer(opMode.hardwareMap); } break;
+            case ROADRUNNER_TWO_WHEELS: { localizer = new TwoWheelSwerveLocalizer(opMode); } break;
             case CUSTOM: { localizer = new CustomSwerveLocalizer(opMode.hardwareMap); } break;
             default: {}
         }
@@ -173,12 +179,14 @@ public class CleverSwerve extends SwerveKinematics implements Enums.Swerve, Enum
             case POSITION: {
                 for (int i = 0; i < offsets.size() && i < modules.size(); i++)
                     modules.get(i).fromServoPowerToAngle(offsets.get(i).doubleValue());
-            } break;
+            }
+            break;
 
             case ANGLE: {
                 for (int i = 0; i < offsets.size(); i++)
                     modules.get(i).setOffset(offsets.get(i).doubleValue());
-            } break;
+            }
+            break;
         }
     }
 
@@ -186,7 +194,9 @@ public class CleverSwerve extends SwerveKinematics implements Enums.Swerve, Enum
         this.batteryVoltageSensor = batteryVoltageSensor;
     }
 
-    public void setRobotInstance(CleverBot robotInstance) { this.robotInstance = robotInstance; }
+    public void setRobotInstance(CleverBot robotInstance) {
+        this.robotInstance = robotInstance;
+    }
 
 
 
@@ -209,26 +219,48 @@ public class CleverSwerve extends SwerveKinematics implements Enums.Swerve, Enum
             super.setLocked(true);
         else super.setLocked(false);
 
-        /*if (usingHeadingCorrection) {
-            if (Math.abs(actualVector.heading) < 0.001)
-                actualVector.heading = (validHeading - head) * headingP;
-            else validHeading = head;
-        }*/
-
         currentState = super.robot2moduleVelocity(actualVector);
 
         int i = 0;
-        for (SwerveState eachState : currentState.getList()) { modules.get(i).run(eachState.speed * speed, eachState.angle); i++; }
+        for (SwerveState eachState : currentState.getList()) {
+            modules.get(i).run(eachState.speed * speed, eachState.angle);
+            i++;
+        }
 
     }
 
-    public void lockToPosition(Pose lockPosition)
-    {
+    double a = -0.00751709;
+    double b = 0.15246;
+    double c = -0.887245;
+    double d = 2.14355;
+
+    private double funkyFunction(double value) {
+        double absolute = Math.abs(value);
+        return (a * toPower(absolute, 4) + b * toPower(absolute, 3) + c * toPower(absolute, 2) + d * absolute) * Math.signum(value);
+    }
+
+    private double xThreshold = 3, yThreshold = 3, headingThreshold = 1.5;
+
+    public void lockToPosition(Pose lockPosition) {
         Pose currentPosition = getPoseEstimate();
         Pose difference = lockPosition.subtract(currentPosition);
 
-        Pose rotated_difference = difference.rotateWithRotationalMatrix(-currentPosition.heading);
-        drive(rotated_difference.x * xyP, rotated_difference.y * xyP, difference.heading * headingP, slowConstrain);
+        telemetry.addLine("             DIFFERENCE"                     );
+        telemetry.addData("dx:        ", difference.x                      );
+        telemetry.addData("dy:        ", difference.y                      );
+        telemetry.addData("dheading:  ", Math.toDegrees(difference.heading));
+
+        difference.x = Math.abs(difference.x) <= xThreshold ? 0 : difference.x;
+        difference.y = Math.abs(difference.y) <= yThreshold ? 0 : difference.y;
+        difference.heading = Math.abs(Math.toDegrees(difference.heading)) <= headingThreshold ? 0 : difference.heading;
+
+        if (difference.x == 0 && difference.y == 0 && difference.heading == 0)
+            hasLockedToPosition = true;
+        else hasLockedToPosition = false;
+
+        Pose rotated_difference = difference.rotateWithRotationalMatrix(-localizer.getAngle(AngleUnit.RADIANS));
+
+        drive(-rotated_difference.y * xyP, -rotated_difference.x * xyP, -difference.heading * headingP, fastConstrain);
     }
 
 
@@ -277,8 +309,10 @@ public class CleverSwerve extends SwerveKinematics implements Enums.Swerve, Enum
     }
 
     public void read() {
-        for (SwerveModule module: modules) { module.read(); }
-        localizer.read();
+        if (usingAxons)
+            for (SwerveModule module: modules) { module.read(); }
+        if (localizer instanceof CustomSwerveLocalizer)
+            localizer.read();
     }
 
 
@@ -454,7 +488,10 @@ public class CleverSwerve extends SwerveKinematics implements Enums.Swerve, Enum
 
 
 
-    public boolean isBusy() { return trajectorySequenceRunner.isBusy(); }
+    public boolean isBusy() {
+        return motionPackage == MotionPackage.PID ? !hasLockedToPosition : false; /*:
+                (trajectorySequenceRunner != null) ? trajectorySequenceRunner.isBusy() : false;*/
+    }
 
     public void waitForIdle() { while (!Thread.currentThread().isInterrupted() && isBusy()) { update(); } }
 

@@ -159,7 +159,7 @@ public class TeleOpModular extends CleverMode {
             swerve.update();
             scoring.update();
             other.update();
-            scoring.manualControlLift(g2.getLeftY());
+            //scoring.manualControlLift(g2.getLeftY());
 
             core.clearCache(Enums.Hubs.ALL);
 

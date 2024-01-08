@@ -9,6 +9,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SwerveConstants;
 import org.firstinspires.ftc.teamcode.hardware.Generals.Enums;
+import org.firstinspires.ftc.teamcode.hardware.Robot.CleverData;
 import org.firstinspires.ftc.teamcode.hardware.Robot.Swerve.Localizer.IMU.Threaded_IMU;
 import org.firstinspires.ftc.teamcode.hardware.Robot.Swerve.CleverSwerve;
 import org.firstinspires.ftc.teamcode.motion.WayFinder.Localization.Pose;
@@ -21,20 +22,23 @@ import org.firstinspires.ftc.teamcode.motion.WayFinder.Localization.Pose;
  * encoder localizer heading may be significantly off if the track width has not been tuned).
  */
 @TeleOp(name = "RR_Localization",group = "RR")
-public class LocalizationTest extends LinearOpMode {
+public class
+LocalizationTest extends LinearOpMode {
     CleverSwerve swerve;
     private Telemetry dashboardTelemetry;
     private Threaded_IMU imu;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        swerve = new CleverSwerve(this, CleverSwerve.Localizers.ROADRUNNER, Enums.OpMode.TELE_OP);
+        swerve = new CleverSwerve(this, CleverSwerve.Localizers.ROADRUNNER_TWO_WHEELS, Enums.OpMode.TELE_OP);
         dashboardTelemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         imu = new Threaded_IMU(this);
 
         waitForStart();
 
         swerve.setPoseEstimate(new Pose(0, 0, 0));
+        CleverData constrains = new CleverData()
+                .setFieldCentric(true);
 
         while (!isStopRequested()) {
             swerve.drive(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, SwerveConstants.fastConstrain);

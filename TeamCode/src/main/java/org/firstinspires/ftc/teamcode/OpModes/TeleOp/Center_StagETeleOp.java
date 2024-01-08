@@ -95,14 +95,14 @@ public class Center_StagETeleOp extends LinearOpMode
                 }
 
                 /**Grab pixels*/
-                if ((g2.wasJustPressed(GamepadKeys.Button.A))) { system.pixels(PixelActions.COLLECT_GRAB); }
+                if ((g2.wasJustPressed(GamepadKeys.Button.A))) { system.pixels(PixelActions.COLLECT_GRAB, false); }
 
                 /**SCORE PIXELS BABYYYY*/
-                if (g2.wasJustPressed(GamepadKeys.Button.B)) { system.pixels(PixelActions.SCORE); }
+                if (g2.wasJustPressed(GamepadKeys.Button.B)) { system.pixels(PixelActions.SCORE, false); }
 
             }
 
-            system.manualControlLift(g2.getLeftY());
+            //system.manualControlLift(g2.getLeftY());
             updateAll();
         }
     }

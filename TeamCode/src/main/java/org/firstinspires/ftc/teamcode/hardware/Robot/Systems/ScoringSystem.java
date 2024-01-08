@@ -7,13 +7,13 @@ import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SystemC
 import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SystemConstants.multithreading;
 import static org.firstinspires.ftc.teamcode.hardware.Generals.HardwareNames.transfer_color_sensor_down;
 import static org.firstinspires.ftc.teamcode.hardware.Generals.HardwareNames.transfer_color_sensor_up;
-import static org.firstinspires.ftc.teamcode.hardware.Robot.Systems.Subsystems.Scoring.Outtake.f;
 import static org.firstinspires.ftc.teamcode.hardware.Robot.Systems.Subsystems.Scoring.Outtake.outOfTransferThreshold;
 import static org.firstinspires.ftc.teamcode.hardware.Robot.Systems.Subsystems.Scoring.Outtake.safeRotationThreshold;
 import static org.firstinspires.ftc.teamcode.motion.WayFinder.Math.MathFormulas.toPower;
 
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.hardware.Generals.Enums;
@@ -27,6 +27,10 @@ import java.util.List;
 
 public class ScoringSystem implements Enums.Scoring, Enums {
     private CleverBot robotInstance;
+    public static boolean justScoredPixels;
+
+    private ElapsedTime ifBugsOccur;
+    private long timeToWaitForSlidersCorrection = 1300; //ms
 
     public static double numberOfInstanceCalls = 0;
     public static double numberOfAutonomusInstanceCalls = 0, numberOfTeleOpInstanceCalls = 0;
@@ -48,7 +52,6 @@ public class ScoringSystem implements Enums.Scoring, Enums {
     private final int timeToOpenGripper = 385;
     private final int timeToRotateSafelyWhenComingDown = 950;
     private final int timeToWaitForLiftBeforeRotating = 300;
-    //TODO: determine optimal times
 
 
     private static List<Pixels> pixelsInPossession = Arrays.asList(Pixels.YELLOW);
@@ -105,6 +108,9 @@ public class ScoringSystem implements Enums.Scoring, Enums {
         }
         numberOfInstanceCalls++;
 
+        ifBugsOccur = new ElapsedTime();
+        ifBugsOccur.startTime();
+
         intake = new Intake(opMode);
         outtake = new Outtake(opMode);
 
@@ -139,7 +145,7 @@ public class ScoringSystem implements Enums.Scoring, Enums {
 
     public void setState(LiftStates state) { outtake.setTarget(state);}
 
-    public void setTarget(int target, boolean override) { outtake.setTarget(target, override);}
+    public void setTarget(int target, boolean override, boolean overrideRotation) { outtake.setTarget(target, override, overrideRotation);}
 
 
     /*
@@ -154,10 +160,9 @@ public class ScoringSystem implements Enums.Scoring, Enums {
             if (autoResetSystem)
                 resetSystem();
 
-            getTo(Position.INTERMEDIARY);
+            getTo(Position.COLLECT);
             stopIntake();
         } else if (opModeType == OpMode.AUTONOMUS) {
-            getTo(Position.COLLECT);
             stopIntake();
         }
 
@@ -259,7 +264,7 @@ public class ScoringSystem implements Enums.Scoring, Enums {
                         getTo(Position.INTERMEDIARY);
                         sleep(200, multithreading ? Update.NONE : Update.OUTTAKE);
 
-                        if (autoGrabPixelsAfterCollectingTwoPixels) { pixels(PixelActions.COLLECT_GRAB); }
+                        if (autoGrabPixelsAfterCollectingTwoPixels) { pixels(PixelActions.COLLECT_GRAB, true); }
                     } else { stopIntake(); }
 
                     setManualOuttakeEnabled(true);
@@ -285,7 +290,7 @@ public class ScoringSystem implements Enums.Scoring, Enums {
     public void resetLiftEncoders() { outtake.resetEncoders();}
 
     public void resetSystem() {
-            setTarget(safeRotationThreshold, true);
+            setTarget(safeRotationThreshold, true, false);
             setState(OuttakeRotationStates.COLLECT);
             sleep(700, multithreading ? Update.NONE : Update.OUTTAKE);
 
@@ -504,7 +509,8 @@ public class ScoringSystem implements Enums.Scoring, Enums {
             default: {}
         }
 
-        while (!opMode.isStopRequested() && outtake.isLiftBusy(5) && !isLiftConstrained()) {
+        ifBugsOccur.reset();
+        while (!opMode.isStopRequested() && outtake.isLiftBusy(5) && !isLiftConstrained() && ifBugsOccur.milliseconds() <= timeToWaitForSlidersCorrection) {
             sleep(1, multithreading ? Update.NONE : Update.OUTTAKE);
         }
 
@@ -514,9 +520,10 @@ public class ScoringSystem implements Enums.Scoring, Enums {
     public void getTo(Position desiredPosition) {
         if (outtake.getRotationState() != OuttakeRotationStates.COLLECT) {
             if (outtake.getTarget() < safeRotationThreshold) {
-                outtake.setTarget(safeRotationThreshold, true);
+                outtake.setTarget(safeRotationThreshold, true, false);
 
-                while (!opMode.isStopRequested() && outtake.isLiftBusy(5) && !isLiftConstrained()) {
+                ifBugsOccur.reset();
+                while (!opMode.isStopRequested() && outtake.isLiftBusy(5) && !isLiftConstrained() && ifBugsOccur.milliseconds() <= timeToWaitForSlidersCorrection) {
                     sleep(1, multithreading ? Update.NONE : Update.OUTTAKE);
                 }
             }
@@ -542,19 +549,20 @@ public class ScoringSystem implements Enums.Scoring, Enums {
 
                 setState(LiftStates.INTERMEDIARY);
             }
-
         }
 
     }
 
-    public void pixels(PixelActions action) {
+    public void pixels(PixelActions action, boolean autoGrab) {
         switch (action) {
             case GRAB: {
                 setState(OuttakeGripperStates.OPEN);
                 sleep(timeToOpenGripper, multithreading ? Update.NONE : Update.OUTTAKE);
 
-                setState(LiftStates.INTERMEDIARY);
-                sleep(200, multithreading ? Update.NONE : Update.OUTTAKE);
+                if (!autoGrab) {
+                    setState(LiftStates.INTERMEDIARY);
+                    sleep(200, multithreading ? Update.NONE : Update.OUTTAKE);
+                }
 
             } break;
 
@@ -568,6 +576,7 @@ public class ScoringSystem implements Enums.Scoring, Enums {
 
                 hasGrabbedOnePixel = false;
                 hasGrabbedTwoPixels = false;
+                justScoredPixels = true;
 
             } break;
 
@@ -588,11 +597,12 @@ public class ScoringSystem implements Enums.Scoring, Enums {
 
                     getTo(Position.COLLECT);
 
-                    while (!opMode.isStopRequested() && outtake.isLiftBusy(5) && !isLiftConstrained()) {
+                    ifBugsOccur.reset();
+                    while (!opMode.isStopRequested() && outtake.isLiftBusy(5) && !isLiftConstrained() && ifBugsOccur.milliseconds() <= timeToWaitForSlidersCorrection) {
                         sleep(1, multithreading ? Update.NONE : Update.OUTTAKE);
                     }
 
-                    pixels(PixelActions.GRAB);
+                    pixels(PixelActions.GRAB, autoGrab);
 
                 }
             }
@@ -600,12 +610,12 @@ public class ScoringSystem implements Enums.Scoring, Enums {
     }
 
 
-    public void manualControlLift(double value) {
+    public void manualControlLift(double value, boolean override, boolean overrideRotation) {
         if (Math.abs(value) > 0.1) {
             double sign =  (manualLiftPower % 2 == 0) ? Math.signum(value) : 1;
             int target = (int) (outtake.getCurrentPositionAverage() + toPower(value, manualLiftPower) * manualLiftSensitivity * sign);
 
-            setTarget(target, false);
+            setTarget(target, override, overrideRotation);
         }
     }
 

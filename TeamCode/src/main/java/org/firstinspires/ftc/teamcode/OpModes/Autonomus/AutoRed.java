@@ -5,7 +5,6 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.Generals.Enums;
@@ -65,7 +64,7 @@ public class AutoRed extends CleverMode {
         robot = new CleverBot()
                 .addConstrains(new CleverData()
                         .add(Enums.OpMode.AUTONOMUS)
-                        .add(Enums.Swerve.Localizers.ROADRUNNER)
+                        .add(Enums.Swerve.Localizers.ROADRUNNER_THREE_WHEELS)
                         .setLockedWheelStyle(Enums.Swerve.LockedWheelPositions.DEFAULT)
                         .setAutoOnBlue(false)
                         .setAutoReset(false)

@@ -31,7 +31,7 @@ public class TestPurePursuit extends LinearOpMode {
         CleverData constrains = new CleverData()
                 .setFieldCentric(false);
 
-        swerve = new CleverSwerve(this, CleverSwerve.Localizers.ROADRUNNER, Enums.OpMode.TELE_OP);
+        swerve = new CleverSwerve(this, CleverSwerve.Localizers.ROADRUNNER_THREE_WHEELS, Enums.OpMode.TELE_OP);
         dashboardTelemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         follower = new PurePursuit(new Point(), 2);

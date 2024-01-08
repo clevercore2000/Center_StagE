@@ -10,17 +10,14 @@ import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SystemC
 import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SystemConstants.usingAprilTagCamera;
 import static org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SystemConstants.usingOpenCvCamera;
 
-import android.widget.Button;
-
 import com.arcrobotics.ftclib.command.button.Trigger;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
-import com.qualcomm.hardware.lynx.LynxModule;
+import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.hardware.Generals.Constants.SwerveConstants;
 import org.firstinspires.ftc.teamcode.hardware.Generals.Enums;
 import org.firstinspires.ftc.teamcode.hardware.OpenCV.AprilTagCamera;
 import org.firstinspires.ftc.teamcode.hardware.OpenCV.Camera;
@@ -41,6 +38,8 @@ public class CleverBot {
     public GamepadEx g1, g2;
     private boolean add_g1, add_g2;
 
+    private boolean override = false, overrideRotation = false;
+
     private VoltageSensor batteryVoltageSensor;
     public static double batteryVoltage;
     private HubBulkRead core;
@@ -60,7 +59,7 @@ public class CleverBot {
 
     //default constrains
     private CleverData constrains = new CleverData()
-            .add(Enums.Swerve.Localizers.ROADRUNNER)
+            .add(Enums.Swerve.Localizers.ROADRUNNER_THREE_WHEELS)
             .add(Enums.Swerve.MotionPackage.CUSTOM)
             .add(Enums.OpMode.TELE_OP)
             .setLockedWheelStyle(Enums.Swerve.LockedWheelPositions.DIAMOND)
@@ -127,7 +126,7 @@ public class CleverBot {
         aprilTagCamera = usingAprilTagCamera ? new AprilTagCamera(opMode, telemetry) : null;
 
         isGamepadTriggerPressed = !usingButtonSensitivity && usingVelocityToggle ?
-                new Trigger(() -> g2.getTrigger(constrains.sensitivityTrigger) > 0.01) : null;
+                new Trigger(() -> g1.getTrigger(constrains.sensitivityTrigger) > 0.01) : null;
 
         batteryVoltageSensor = opMode.hardwareMap.voltageSensor.iterator().next();
         //core = new HubBulkRead(opMode.hardwareMap, LynxModule.BulkCachingMode.AUTO);
@@ -179,11 +178,56 @@ public class CleverBot {
         batteryVoltage = batteryVoltageSensor.getVoltage();
 
         scoring.read();
-        other.read();
         swerve.read();
 
         if (g1 != null) g1.readButtons();
         if (g2 != null) g2.readButtons();
+
+    }
+
+    public void gamepadRumble(Gamepad gamepad, Enums.Rumbles type) {
+        switch (type) {
+            case START_PULLUP: {
+                Gamepad.RumbleEffect start = new Gamepad.RumbleEffect.Builder()
+                        .addStep(0.0, 1.0, 300)
+                        .addStep(1.0, 0.0, 300)
+                        .build();
+
+                gamepad.setLedColor(128, 0, 128, 1000); //purple
+                gamepad.runRumbleEffect(start);
+            } break;
+
+            case STOP_PULLUP: {
+                Gamepad.RumbleEffect stop = new Gamepad.RumbleEffect.Builder()
+                        .addStep(1.0, 1.0, 300)
+                        .build();
+
+                gamepad.setLedColor(255, 165, 0, 1000); //orange
+                gamepad.runRumbleEffect(stop);
+            } break;
+
+            case FAST_SWERVE: {} break;
+
+            case SLOW_SWERVE: {
+                gamepad.setLedColor(128, 0, 128, 1000); //purple again
+            } break;
+        }
+    }
+
+    public void manualControlLift(double value) {
+
+        if (g2.isDown(GamepadKeys.Button.X) && g2.isDown(GamepadKeys.Button.Y)) {
+            if (g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
+                override = !override;
+                overrideRotation = !overrideRotation;
+
+                if (overrideRotation) { gamepadRumble(g2.gamepad, Enums.Rumbles.START_PULLUP); }
+                    else { gamepadRumble(g2.gamepad, Enums.Rumbles.STOP_PULLUP); }
+            }
+        }
+
+        scoring.manualControlLift(value, override, overrideRotation);
+
     }
 
     public void readLift() {
@@ -192,13 +236,10 @@ public class CleverBot {
 
     public void updateLift() { scoring.updateLift();}
 
-    public void updatePullUp() { other.update(); }
-
     public void updateSwerve() { swerve.update(); }
 
     public void updateAll() {
         scoring.update();
-        other.update();
         swerve.update();
     }
 
@@ -232,31 +273,39 @@ public class CleverBot {
         swerve.setRobotInstance(this);
     }
 
+    public void setPullUpPower(double power) { other.setPower(power);}
+
     public void startEndgameTimer() { other.start(); }
 
     public void initializeScoring() { scoring.initializeSystem(); }
 
     public void drive(double x, double y, double heading) {
-        speed = fastConstrain;
 
         if (usingDriveSensitivity) {
             if (usingVelocityToggle) {
                 if (usingButtonSensitivity && g1.wasJustPressed(constrains.sensitivityButton))
                     isFast = !isFast;
-                else if(!usingButtonSensitivity)
-                    if(isGamepadTriggerPressed.get() && !lastTriggerValue)
-                        isFast = !isFast;
+                else if(!usingButtonSensitivity) {
 
+                    if (isGamepadTriggerPressed.get() && !lastTriggerValue)
+                        isFast = !isFast;
+                    lastTriggerValue = isGamepadTriggerPressed.get();
+
+                }
                 speed = isFast ? fastConstrain : slowConstrain;
-                lastTriggerValue = isGamepadTriggerPressed.get();
+
             }
             else {
+                speed = fastConstrain;
+
                 if (usingButtonSensitivity && g1.isDown(constrains.sensitivityButton))
                     speed = slowConstrain;
                 else if (!usingButtonSensitivity && g1.getTrigger(constrains.sensitivityTrigger) > 0.01)
                     speed = slowConstrain;
             }
         }
+
+        if (speed == slowConstrain) { gamepadRumble(g1.gamepad, Enums.Rumbles.SLOW_SWERVE); }
 
         swerve.drive(x, y, heading, speed);
     }
@@ -333,6 +382,7 @@ public class CleverBot {
 
             telemetry.addData("swerve speed:", speed);
             telemetry.addData("usingDriveSensitivity", usingDriveSensitivity);
+            telemetry.addData("PULLUP: ", override);
 
             //telemetry.addData("Sliders: ", scoring.getCurrentLiftPositionAverage());
             //telemetry.addData("Left: ", scoring.getLeftOuttakeEncoderPosition());

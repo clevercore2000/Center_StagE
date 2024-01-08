@@ -57,7 +57,7 @@ public class Outtake implements Enums.Scoring {
     public static final int safeRotationThreshold = 540;
     public static final int outOfTransferThreshold = 200;
     private double accuracyThreshold = 20;
-    private LiftStates liftState = LiftStates.INTERMEDIARY;
+    private LiftStates liftState = LiftStates.COLLECT;
 
 
     private boolean needsToReset = true;
@@ -179,17 +179,18 @@ public class Outtake implements Enums.Scoring {
         }
     }
 
-    public void setTarget(int target, boolean override) {
+    public void setTarget(int target, boolean override, boolean overrideRotation) {
         this.liftState = LiftStates.UNDEFINED;
 
         if (!override)
             this.target = Range.clip(target, MIN, MAX);
         else this.target = target;
 
-        if (getCurrentPositionAverage() > safeRotationThreshold + accuracyThreshold && rotationStates != OuttakeRotationStates.SCORE) {
+        if (!overrideRotation)
+            if (getCurrentPositionAverage() > safeRotationThreshold + accuracyThreshold && rotationStates != OuttakeRotationStates.SCORE) {
             setState(OuttakeRotationStates.SCORE);
             setState(OuttakeGripperStates.OPEN);
-        }
+            }
     }
 
     public void setTarget(LiftStates liftState) {

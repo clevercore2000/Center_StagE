@@ -91,16 +91,15 @@ public class Dead3WheelLocalizer {
         double robot_x = calculateX(delta_B, robot_theta);
         double robot_y = calculateY(delta_R, robot_theta);
 
-        //double new_absolute_theta = start_heading + robot_theta;
-        //double delta_absolute_theta = new_absolute_theta - lastPoseEstimate.heading;
-        //double average_theta = start_heading + delta_absolute_theta / 2;
+        double new_absolute_theta = start_heading + robot_theta;
+        double delta_absolute_theta = new_absolute_theta - lastPoseEstimate.heading;
+        double average_theta = start_heading + delta_absolute_theta / 2;
 
         double new_x = lastPoseEstimate.x + robot_x;
         double new_y = lastPoseEstimate.y + robot_y;
         double new_theta = normalizeAngle(lastPoseEstimate.heading + robot_theta);
 
-        Pose delta_global_pose = new Pose(new_x, new_y, new_theta);
-        //.rotateWithRotationalMatrix(-average_theta);
+        Pose delta_global_pose = new Pose(new_x, new_y, new_theta).rotateWithRotationalMatrix(-average_theta);
 
         return delta_global_pose;
     }
